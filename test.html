@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Translator Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+    
+    .section h2 {
+      color: #1f2937;
+      margin-bottom: 15px;
+    }
+    
+    .text-block {
+      margin-bottom: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #4f46e5;
+    }
+    
+    .instructions {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .instructions h3 {
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+    
+    .instructions ol {
+      color: #92400e;
+      margin-left: 20px;
+    }
+    
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .test-btn {
+      padding: 10px 20px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    
+    .test-btn:hover {
+      background: #4338ca;
+    }
+    
+    .code-block {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🌐 AI Language Translator Test Page</h1>
+    <p>Use this page to test the AI translation extension functionality</p>
+  </div>
+
+  <div class="instructions">
+    <h3>📋 Testing Instructions</h3>
+    <ol>
+      <li>Make sure the AI Language Translator extension is installed and enabled</li>
+      <li>Configure your API key in the extension popup (click the extension icon)</li>
+      <li>Enable translation in the popup</li>
+      <li>Try the following test methods:</li>
+      <ul>
+        <li><strong>Page Translation:</strong> Click "翻译当前页面" in the popup</li>
+        <li><strong>Selection Translation:</strong> Select any text below and click the translation button that appears</li>
+        <li><strong>Right-click Menu:</strong> Select text and use "翻译选中文本" from right-click menu</li>
+        <li><strong>Keyboard Shortcuts:</strong> Alt+A to toggle translation, Alt+W to translate page</li>
+        <li><strong>Float Button:</strong> Click the floating button on the right side of the page</li>
+      </ul>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>🇺🇸 English Content</h2>
+    
+    <div class="text-block">
+      <h3>Welcome to AI Translation</h3>
+      <p>This is a test paragraph in English. Artificial Intelligence has revolutionized the way we communicate across language barriers. Modern machine learning models can understand context, nuance, and cultural references, making translations more accurate and natural than ever before.</p>
+    </div>
+    
+    <div class="text-block">
+      <h3>Technology Overview</h3>
+      <p>The AI Language Translator extension leverages state-of-the-art language models like GPT-4, Claude, and Gemini to provide high-quality translations. These models are trained on vast amounts of multilingual text data and can handle complex linguistic structures, idioms, and technical terminology.</p>
+    </div>
+    
+    <div class="text-block">
+      <h3>Key Features</h3>
+      <ul>
+        <li>Real-time translation with AI models</li>
+        <li>Bilingual display mode for better comprehension</li>
+        <li>Context-aware translation quality</li>
+        <li>Support for multiple languages</li>
+        <li>Seamless integration with web browsing</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🇯🇵 Japanese Content (日本語)</h2>
+    
+    <div class="text-block">
+      <h3>人工知能翻訳について</h3>
+      <p>これは日本語のテスト段落です。人工知能は言語の壁を越えてコミュニケーションを取る方法を革命的に変えました。最新の機械学習モデルは文脈、ニュアンス、文化的な参照を理解し、これまで以上に正確で自然な翻訳を可能にしています。</p>
+    </div>
+    
+    <div class="text-block">
+      <h3>技術的特徴</h3>
+      <p>このAI言語翻訳拡張機能は、GPT-4、Claude、Geminiなどの最先端の言語モデルを活用して高品質な翻訳を提供します。これらのモデルは膨大な多言語テキストデータで訓練されており、複雑な言語構造、慣用句、専門用語を処理できます。</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🇫🇷 French Content (Français)</h2>
+    
+    <div class="text-block">
+      <h3>Intelligence Artificielle et Traduction</h3>
+      <p>Ceci est un paragraphe de test en français. L'intelligence artificielle a révolutionné la façon dont nous communiquons à travers les barrières linguistiques. Les modèles d'apprentissage automatique modernes peuvent comprendre le contexte, les nuances et les références culturelles, rendant les traductions plus précises et naturelles que jamais.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🇪🇸 Spanish Content (Español)</h2>
+    
+    <div class="text-block">
+      <h3>Inteligencia Artificial y Traducción</h3>
+      <p>Este es un párrafo de prueba en español. La inteligencia artificial ha revolucionado la forma en que nos comunicamos a través de las barreras del idioma. Los modelos modernos de aprendizaje automático pueden entender el contexto, los matices y las referencias culturales, haciendo que las traducciones sean más precisas y naturales que nunca.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔧 Technical Test</h2>
+    
+    <div class="text-block">
+      <h3>API Configuration Test</h3>
+      <p>To test the API configuration, make sure you have entered a valid API key for one of the supported AI models. The extension supports OpenAI GPT models, Claude 3, and Google Gemini Pro.</p>
+    </div>
+    
+    <div class="text-block">
+      <h3>Code Example</h3>
+      <div class="code-block">
+function translateText(text, sourceLang, targetLang) {
+  return fetch('/api/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, sourceLang, targetLang })
+  }).then(response => response.json());
+}
+      </div>
+    </div>
+  </div>
+
+  <div class="test-buttons">
+    <button class="test-btn" onclick="testSelection()">Test Selection</button>
+    <button class="test-btn" onclick="testNotification()">Test Notification</button>
+    <button class="test-btn" onclick="showExtensionStatus()">Check Extension Status</button>
+  </div>
+
+  <script>
+    function testSelection() {
+      // Select the first paragraph for testing
+      const firstParagraph = document.querySelector('.text-block p');
+      if (firstParagraph) {
+        const range = document.createRange();
+        range.selectNode(firstParagraph);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        alert('Text selected! Now try using the translation features.');
+      }
+    }
+
+    function testNotification() {
+      alert('This is a test notification. The actual extension will show styled notifications.');
+    }
+
+    function showExtensionStatus() {
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        alert('Chrome extension API is available!');
+      } else {
+        alert('Chrome extension API not detected. Make sure the extension is installed.');
+      }
+    }
+
+    // Log page load for debugging
+    console.log('AI Translator test page loaded');
+    console.log('Page contains translatable elements:', document.querySelectorAll('p, h1, h2, h3, li').length);
+  </script>
+</body>
+</html>
