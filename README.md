@@ -1,8 +1,8 @@
-# AI Language Translator Browser Extension
+# Tidy Browser Extension
 
 ## 产品概述
 
-AI Language Translator 是一款基于人工智能的浏览器翻译插件，旨在为用户提供沉浸式的双语阅读体验，提升信息获取效率。该插件支持多种翻译场景，包括网页翻译、PDF文档翻译、图片翻译、视频字幕翻译等。
+Tidy 是一款基于人工智能的浏览器翻译插件，旨在为用户提供沉浸式的双语阅读体验，提升信息获取效率。该插件支持多种翻译场景，包括网页翻译、PDF文档翻译、图片翻译、视频字幕翻译等。
 
 ## 核心功能
 
@@ -78,7 +78,7 @@ cd tify
 ```
 build/
 └── dist/
-    ├── ai-language-translator-v1.0.0.zip    # 用于Chrome Web Store
+    ├── tidy-v1.0.0.zip    # 用于Chrome Web Store
     └── extension-dev/                        # 用于开发者模式
         ├── manifest.json
         └── src/
@@ -105,7 +105,7 @@ build/
 1. 访问 [Chrome 开发者控制台](https://chrome.google.com/webstore/devconsole/)
 2. 登录你的 Google 开发者账户
 3. 点击 **"添加新项"**
-4. 上传 `build/dist/ai-language-translator-v1.0.0.zip` 文件
+4. 上传 `build/dist/tidy-v1.0.0.zip` 文件
 5. 按照指引完成发布流程
 
 ### 构建脚本功能
@@ -345,7 +345,7 @@ src/
 
 ## 总结
 
-AI Language Translator 浏览器插件旨在通过先进的AI技术，为用户提供高质量的沉浸式翻译体验。产品设计注重用户体验、功能完整性和技术先进性，通过免费+付费的商业模式实现可持续发展。
+Tidy 浏览器插件旨在通过先进的AI技术，为用户提供高质量的沉浸式翻译体验。产品设计注重用户体验、功能完整性和技术先进性，通过免费+付费的商业模式实现可持续发展。
 
 该产品将帮助用户打破语言障碍，提升信息获取效率，成为跨语言交流的重要工具。
 

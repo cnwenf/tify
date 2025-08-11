@@ -204,7 +204,7 @@ def print_installation_info():
 
 def main():
     """Main validation function"""
-    print("🔍 AI Language Translator Chrome 扩展验证")
+    print("🔍 Tidy Chrome 扩展验证")
     print("="*60)
     
     # Change to script directory if manifest.json is not in current directory

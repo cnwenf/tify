@@ -1,4 +1,4 @@
-# AI Language Translator 安装和测试指南
+# Tidy 安装和测试指南
 
 ## 📦 安装步骤
 
@@ -150,7 +150,7 @@
 
 ### 查看扩展日志
 1. 进入 `chrome://extensions/`
-2. 找到 AI Language Translator 扩展
+2. 找到 Tidy 扩展
 3. 点击"检查视图 service worker"
 4. 在控制台中查看后台脚本日志
 
