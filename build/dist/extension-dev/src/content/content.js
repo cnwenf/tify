@@ -13,20 +13,87 @@ class TranslationController {
 
   // 初始化
   async init() {
+    console.log('Tidy: 初始化翻译控制器');
+    
+    // 检查扩展上下文是否有效
+    if (!chrome.runtime?.id) {
+      console.error('Tidy: 扩展上下文无效，无法初始化');
+      return;
+    }
+    
     await this.loadSettings();
     this.createFloatButton();
     this.bindEvents();
     this.setupSelectionTranslation();
     
     // 监听设置变化
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      this.handleMessage(message, sender, sendResponse);
-    });
+    try {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        console.log('Tidy: 收到消息:', message);
+        this.handleMessage(message, sender, sendResponse);
+      });
+    } catch (error) {
+      console.error('Tidy: 设置消息监听器失败:', error);
+    }
+    
+    // 监听扩展状态变化
+    this.setupExtensionStateListener();
+    
+    console.log('Tidy: 翻译控制器初始化完成');
+    console.log('Tidy: 当前设置:', this.settings);
+  }
+
+  // 设置扩展状态监听器
+  setupExtensionStateListener() {
+    // 定期检查扩展上下文是否有效
+    setInterval(() => {
+      if (!chrome.runtime?.id) {
+        console.warn('Tidy: 检测到扩展上下文失效，尝试重新初始化');
+        this.handleExtensionContextInvalidated();
+      }
+    }, 30000); // 每30秒检查一次
+  }
+
+  // 处理扩展上下文失效
+  handleExtensionContextInvalidated() {
+    // 清理现有元素
+    this.clearTranslation();
+    this.hideSelectionButton();
+    
+    // 移除悬浮按钮
+    if (this.floatButton && this.floatButton.parentNode) {
+      this.floatButton.parentNode.removeChild(this.floatButton);
+      this.floatButton = null;
+    }
+    
+    // 显示提示信息
+    this.showNotification('扩展上下文已失效，请刷新页面重试', 'warning');
+    
+    // 尝试重新初始化
+    setTimeout(() => {
+      if (chrome.runtime?.id) {
+        console.log('Tidy: 扩展上下文已恢复，重新初始化');
+        this.init();
+      }
+    }, 1000);
   }
 
   // 加载设置
   async loadSettings() {
     try {
+      // 检查扩展上下文是否有效
+      if (!chrome.runtime?.id || !chrome.storage) {
+        console.error('Tidy: 扩展上下文无效，使用默认设置');
+        this.settings = {
+          translateEnabled: false,
+          aiModel: 'openai-gpt35',
+          sourceLang: 'auto',
+          targetLang: 'zh',
+          translateMode: 'bilingual'
+        };
+        return;
+      }
+
       const result = await chrome.storage.sync.get([
         'translateEnabled',
         'aiModel',
@@ -43,35 +110,53 @@ class TranslationController {
         translateMode: result.translateMode || 'bilingual'
       };
     } catch (error) {
-      console.error('加载设置失败:', error);
+      console.error('Tidy: 加载设置失败:', error);
+      // 使用默认设置
+      this.settings = {
+        translateEnabled: false,
+        aiModel: 'openai-gpt35',
+        sourceLang: 'auto',
+        targetLang: 'zh',
+        translateMode: 'bilingual'
+      };
     }
   }
 
   // 处理消息
   handleMessage(message, sender, sendResponse) {
+    console.log('Tidy: 处理消息:', message.action);
+    
     switch (message.action) {
       case 'translatePage':
+        console.log('Tidy: 开始翻译页面');
         this.translatePage(message.settings);
         sendResponse({ success: true });
         break;
       case 'clearTranslation':
+        console.log('Tidy: 清除翻译');
         this.clearTranslation();
         sendResponse({ success: true });
         break;
       case 'settingsChanged':
+        console.log('Tidy: 设置已更新');
         this.settings = message.settings;
         this.updateFloatButton();
         sendResponse({ success: true });
         break;
       case 'toggleTranslation':
+        console.log('Tidy: 切换翻译状态');
         this.toggleTranslation();
         sendResponse({ success: true });
         break;
       case 'showTranslationResult':
+        console.log('Tidy: 显示翻译结果');
         // 处理右键菜单翻译结果
         this.showTranslationPopup(message.originalText, message.translation);
         sendResponse({ success: true });
         break;
+      default:
+        console.log('Tidy: 未知消息类型:', message.action);
+        sendResponse({ success: false, error: 'Unknown action' });
     }
   }
 
@@ -271,13 +356,23 @@ class TranslationController {
 
       const currentSettings = settings || this.settings;
       
+      // 检查API密钥
+      if (!currentSettings.apiKey) {
+        this.hideProgress();
+        this.showNotification('请先在插件设置中配置API密钥', 'warning');
+        return;
+      }
+      
       // 获取需要翻译的文本元素
       const elements = this.getTranslatableElements();
       
       if (elements.length === 0) {
+        this.hideProgress();
         this.showNotification('未找到可翻译的内容', 'warning');
         return;
       }
+
+      console.log(`找到 ${elements.length} 个可翻译元素`);
 
       // 批量翻译
       const batchSize = 5; // 每批翻译5个元素
@@ -295,7 +390,8 @@ class TranslationController {
       
     } catch (error) {
       console.error('翻译失败:', error);
-      this.showNotification('翻译失败，请重试', 'error');
+      this.hideProgress();
+      this.showNotification(`翻译失败: ${error.message}`, 'error');
     } finally {
       this.isTranslating = false;
     }
@@ -349,13 +445,18 @@ class TranslationController {
         const originalText = element.textContent.trim();
         if (!originalText) return;
 
+        console.log('正在翻译:', originalText.substring(0, 50) + '...');
         const translation = await this.requestTranslation(originalText, settings);
         
         if (translation) {
           this.applyTranslation(element, originalText, translation, settings.translateMode);
+          console.log('翻译完成:', translation.substring(0, 50) + '...');
+        } else {
+          console.warn('翻译返回空结果:', originalText.substring(0, 50) + '...');
         }
       } catch (error) {
         console.error('翻译元素失败:', error);
+        // 继续翻译其他元素，不中断整个流程
       }
     });
 
@@ -364,18 +465,42 @@ class TranslationController {
 
   // 请求翻译
   async requestTranslation(text, settings) {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage({
-        action: 'translate',
-        text: text,
-        settings: settings
-      }, (response) => {
-        if (response && response.success) {
-          resolve(response.translation);
-        } else {
-          resolve(null);
-        }
-      });
+    return new Promise((resolve, reject) => {
+      // 检查扩展上下文是否有效
+      if (!chrome.runtime?.id) {
+        reject(new Error('扩展上下文已失效，请刷新页面'));
+        return;
+      }
+
+      try {
+        chrome.runtime.sendMessage({
+          action: 'translate',
+          text: text,
+          settings: settings
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('Runtime error:', chrome.runtime.lastError);
+            // 检查是否是上下文失效错误
+            if (chrome.runtime.lastError.message.includes('Extension context invalidated')) {
+              reject(new Error('扩展上下文已失效，请刷新页面重试'));
+            } else {
+              reject(new Error(chrome.runtime.lastError.message));
+            }
+            return;
+          }
+          
+          if (response && response.success) {
+            resolve(response.translation);
+          } else {
+            const errorMessage = response?.error || '翻译请求失败';
+            console.error('Translation error:', errorMessage);
+            reject(new Error(errorMessage));
+          }
+        });
+      } catch (error) {
+        console.error('发送消息时出错:', error);
+        reject(new Error('扩展通信失败，请刷新页面重试'));
+      }
     });
   }
 
@@ -685,7 +810,20 @@ class TranslationController {
   showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `ai-translator-notification notification-${type}`;
-    notification.textContent = message;
+    
+    // 如果是上下文失效错误，提供更详细的提示
+    if (message.includes('扩展上下文已失效')) {
+      notification.innerHTML = `
+        <div style="margin-bottom: 8px;">${message}</div>
+        <div style="font-size: 12px; opacity: 0.9; line-height: 1.4;">
+          解决方法：<br>
+          1. 刷新当前页面<br>
+          2. 或重新启用扩展
+        </div>
+      `;
+    } else {
+      notification.textContent = message;
+    }
     
     notification.style.cssText = `
       position: fixed;
@@ -699,8 +837,9 @@ class TranslationController {
       z-index: 10004;
       transform: translateX(100%);
       transition: transform 0.3s ease;
-      max-width: 300px;
+      max-width: 350px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.4;
     `;
 
     const colors = {
@@ -718,6 +857,8 @@ class TranslationController {
       notification.style.transform = 'translateX(0)';
     }, 100);
 
+    // 对于上下文失效错误，延长显示时间
+    const displayTime = message.includes('扩展上下文已失效') ? 8000 : 3000;
     setTimeout(() => {
       notification.style.transform = 'translateX(100%)';
       setTimeout(() => {
@@ -725,7 +866,7 @@ class TranslationController {
           notification.parentNode.removeChild(notification);
         }
       }, 300);
-    }, 3000);
+    }, displayTime);
   }
 }
 

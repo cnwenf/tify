@@ -7,31 +7,178 @@ class TranslationController {
     this.floatButton = null;
     this.isTranslating = false;
     this.selectionMode = false;
+    this.extensionCheckInterval = null;
     
-    this.init();
+    // 延迟初始化，确保DOM已加载
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.init();
+      });
+    } else {
+      this.init();
+    }
   }
 
   // 初始化
   async init() {
     console.log('Tidy: 初始化翻译控制器');
-    await this.loadSettings();
-    this.createFloatButton();
-    this.bindEvents();
-    this.setupSelectionTranslation();
     
-    // 监听设置变化
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log('Tidy: 收到消息:', message);
-      this.handleMessage(message, sender, sendResponse);
-    });
+    // 检查扩展上下文是否有效
+    if (!chrome.runtime?.id) {
+      console.error('Tidy: 扩展上下文无效，无法初始化');
+      return;
+    }
     
-    console.log('Tidy: 翻译控制器初始化完成');
-    console.log('Tidy: 当前设置:', this.settings);
+    try {
+      await this.loadSettings();
+      this.createFloatButton();
+      this.bindEvents();
+      this.setupSelectionTranslation();
+      
+      // 监听设置变化
+      try {
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+          console.log('Tidy: 收到消息:', message);
+          this.handleMessage(message, sender, sendResponse);
+        });
+      } catch (error) {
+        console.error('Tidy: 设置消息监听器失败:', error);
+      }
+      
+      // 监听扩展状态变化
+      this.setupExtensionStateListener();
+      
+      console.log('Tidy: 翻译控制器初始化完成');
+      console.log('Tidy: 当前设置:', this.settings);
+    } catch (error) {
+      console.error('Tidy: 初始化失败:', error);
+      this.showNotification('初始化失败，请刷新页面重试', 'error');
+    }
+  }
+
+  // 设置扩展状态监听器
+  setupExtensionStateListener() {
+    // 定期检查扩展上下文是否有效
+    this.extensionCheckInterval = setInterval(() => {
+      if (!chrome.runtime?.id) {
+        console.warn('Tidy: 检测到扩展上下文失效，尝试重新初始化');
+        this.handleExtensionContextInvalidated();
+      }
+    }, 30000); // 每30秒检查一次
+  }
+
+  // 移除事件监听器
+  removeEventListeners() {
+    // 移除键盘事件监听器
+    if (this.boundKeydownHandler) {
+      document.removeEventListener('keydown', this.boundKeydownHandler);
+    }
+    if (this.boundMouseupHandler) {
+      document.removeEventListener('mouseup', this.boundMouseupHandler);
+    }
+    if (this.boundMousedownHandler) {
+      document.removeEventListener('mousedown', this.boundMousedownHandler);
+    }
+    if (this.boundContextmenuHandler) {
+      document.removeEventListener('contextmenu', this.boundContextmenuHandler);
+    }
+    
+    // 移除悬浮按钮事件监听器
+    if (this.floatButton) {
+      if (this.boundFloatButtonMouseenter) {
+        this.floatButton.removeEventListener('mouseenter', this.boundFloatButtonMouseenter);
+      }
+      if (this.boundFloatButtonMouseleave) {
+        this.floatButton.removeEventListener('mouseleave', this.boundFloatButtonMouseleave);
+      }
+      if (this.boundFloatButtonClick) {
+        this.floatButton.removeEventListener('click', this.boundFloatButtonClick);
+      }
+    }
+  }
+
+  // 清理资源
+  cleanup() {
+    console.log('Tidy: 开始清理资源...');
+    
+    // 停止翻译
+    this.isTranslating = false;
+    
+    // 清除翻译
+    this.clearTranslation();
+    
+    // 隐藏选择按钮
+    this.hideSelectionButton();
+    
+    // 移除事件监听器
+    this.removeEventListeners();
+    
+    // 停止定期检查
+    if (this.extensionCheckInterval) {
+      clearInterval(this.extensionCheckInterval);
+      this.extensionCheckInterval = null;
+    }
+    
+    // 移除悬浮按钮
+    if (this.floatButton && this.floatButton.parentNode) {
+      this.floatButton.parentNode.removeChild(this.floatButton);
+      this.floatButton = null;
+    }
+    
+    console.log('Tidy: 资源清理完成');
+  }
+
+  // 处理扩展上下文失效
+  handleExtensionContextInvalidated() {
+    console.warn('Tidy: 扩展上下文已失效，开始清理...');
+    
+    // 清理现有元素
+    this.clearTranslation();
+    this.hideSelectionButton();
+    
+    // 移除悬浮按钮
+    if (this.floatButton && this.floatButton.parentNode) {
+      this.floatButton.parentNode.removeChild(this.floatButton);
+      this.floatButton = null;
+    }
+    
+    // 移除所有相关的事件监听器
+    this.removeEventListeners();
+    
+    // 显示提示信息
+    this.showNotification('扩展上下文已失效，请刷新页面重试', 'warning');
+    
+    // 停止定期检查
+    if (this.extensionCheckInterval) {
+      clearInterval(this.extensionCheckInterval);
+      this.extensionCheckInterval = null;
+    }
+    
+    // 尝试重新初始化
+    setTimeout(() => {
+      if (chrome.runtime?.id) {
+        console.log('Tidy: 扩展上下文已恢复，重新初始化');
+        this.init();
+      }
+    }, 2000);
   }
 
   // 加载设置
   async loadSettings() {
     try {
+      // 检查扩展上下文是否有效
+      if (!chrome.runtime?.id || !chrome.storage) {
+        console.error('Tidy: 扩展上下文无效，使用默认设置');
+        this.settings = {
+          translateEnabled: false,
+          aiModel: 'openai-gpt35',
+          sourceLang: 'auto',
+          targetLang: 'zh',
+          translateMode: 'bilingual'
+        };
+        return;
+      }
+
       const result = await chrome.storage.sync.get([
         'translateEnabled',
         'aiModel',
@@ -48,7 +195,15 @@ class TranslationController {
         translateMode: result.translateMode || 'bilingual'
       };
     } catch (error) {
-      console.error('加载设置失败:', error);
+      console.error('Tidy: 加载设置失败:', error);
+      // 使用默认设置
+      this.settings = {
+        translateEnabled: false,
+        aiModel: 'openai-gpt35',
+        sourceLang: 'auto',
+        targetLang: 'zh',
+        translateMode: 'bilingual'
+      };
     }
   }
 
@@ -128,21 +283,27 @@ class TranslationController {
       user-select: none;
     `;
 
-    // 添加悬停效果
-    this.floatButton.addEventListener('mouseenter', () => {
+    // 绑定悬浮按钮事件处理器
+    this.boundFloatButtonMouseenter = () => {
       this.floatButton.style.transform = 'translateY(-50%) scale(1.1)';
       this.floatButton.style.boxShadow = '0 6px 25px rgba(79, 70, 229, 0.4)';
-    });
+    };
 
-    this.floatButton.addEventListener('mouseleave', () => {
+    this.boundFloatButtonMouseleave = () => {
       this.floatButton.style.transform = 'translateY(-50%) scale(1)';
       this.floatButton.style.boxShadow = '0 4px 20px rgba(79, 70, 229, 0.3)';
-    });
+    };
+
+    this.boundFloatButtonClick = () => {
+      this.toggleTranslation();
+    };
+
+    // 添加悬停效果
+    this.floatButton.addEventListener('mouseenter', this.boundFloatButtonMouseenter);
+    this.floatButton.addEventListener('mouseleave', this.boundFloatButtonMouseleave);
 
     // 点击事件
-    this.floatButton.addEventListener('click', () => {
-      this.toggleTranslation();
-    });
+    this.floatButton.addEventListener('click', this.boundFloatButtonClick);
 
     document.body.appendChild(this.floatButton);
     this.updateFloatButton();
@@ -164,8 +325,8 @@ class TranslationController {
 
   // 绑定事件
   bindEvents() {
-    // 快捷键支持
-    document.addEventListener('keydown', (e) => {
+    // 绑定事件处理器
+    this.boundKeydownHandler = (e) => {
       // Alt + A: 切换翻译
       if (e.altKey && e.key === 'a') {
         e.preventDefault();
@@ -177,20 +338,25 @@ class TranslationController {
         e.preventDefault();
         this.translatePage();
       }
-    });
+    };
 
-    // 右键菜单支持（通过background script处理）
-    document.addEventListener('contextmenu', (e) => {
+    this.boundContextmenuHandler = (e) => {
       // 记录右键位置，用于可能的翻译操作
       this.lastContextMenuPosition = { x: e.clientX, y: e.clientY };
-    });
+    };
+
+    // 快捷键支持
+    document.addEventListener('keydown', this.boundKeydownHandler);
+
+    // 右键菜单支持（通过background script处理）
+    document.addEventListener('contextmenu', this.boundContextmenuHandler);
   }
 
   // 设置选择翻译
   setupSelectionTranslation() {
     let selectionTimeout;
 
-    document.addEventListener('mouseup', () => {
+    this.boundMouseupHandler = () => {
       clearTimeout(selectionTimeout);
       selectionTimeout = setTimeout(() => {
         const selection = window.getSelection();
@@ -200,11 +366,14 @@ class TranslationController {
           this.hideSelectionButton();
         }
       }, 200);
-    });
+    };
 
-    document.addEventListener('mousedown', () => {
+    this.boundMousedownHandler = () => {
       this.hideSelectionButton();
-    });
+    };
+
+    document.addEventListener('mouseup', this.boundMouseupHandler);
+    document.addEventListener('mousedown', this.boundMousedownHandler);
   }
 
   // 显示选择翻译按钮
@@ -396,25 +565,52 @@ class TranslationController {
   // 请求翻译
   async requestTranslation(text, settings) {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({
-        action: 'translate',
-        text: text,
-        settings: settings
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error('Runtime error:', chrome.runtime.lastError);
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        
-        if (response && response.success) {
-          resolve(response.translation);
-        } else {
-          const errorMessage = response?.error || '翻译请求失败';
-          console.error('Translation error:', errorMessage);
-          reject(new Error(errorMessage));
-        }
-      });
+      // 检查扩展上下文是否有效
+      if (!chrome.runtime?.id) {
+        console.error('Tidy: 扩展上下文无效，无法发送翻译请求');
+        reject(new Error('扩展上下文已失效，请刷新页面'));
+        return;
+      }
+
+      // 设置超时
+      const timeout = setTimeout(() => {
+        reject(new Error('翻译请求超时，请重试'));
+      }, 30000); // 30秒超时
+
+      try {
+        chrome.runtime.sendMessage({
+          action: 'translate',
+          text: text,
+          settings: settings
+        }, (response) => {
+          clearTimeout(timeout);
+          
+          if (chrome.runtime.lastError) {
+            console.error('Tidy: Runtime error:', chrome.runtime.lastError);
+            // 检查是否是上下文失效错误
+            if (chrome.runtime.lastError.message.includes('Extension context invalidated')) {
+              console.error('Tidy: 检测到扩展上下文失效');
+              this.handleExtensionContextInvalidated();
+              reject(new Error('扩展上下文已失效，请刷新页面重试'));
+            } else {
+              reject(new Error(chrome.runtime.lastError.message));
+            }
+            return;
+          }
+          
+          if (response && response.success) {
+            resolve(response.translation);
+          } else {
+            const errorMessage = response?.error || '翻译请求失败';
+            console.error('Tidy: Translation error:', errorMessage);
+            reject(new Error(errorMessage));
+          }
+        });
+      } catch (error) {
+        clearTimeout(timeout);
+        console.error('Tidy: 发送消息时出错:', error);
+        reject(new Error('扩展通信失败，请刷新页面重试'));
+      }
     });
   }
 
@@ -724,7 +920,20 @@ class TranslationController {
   showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `ai-translator-notification notification-${type}`;
-    notification.textContent = message;
+    
+    // 如果是上下文失效错误，提供更详细的提示
+    if (message.includes('扩展上下文已失效')) {
+      notification.innerHTML = `
+        <div style="margin-bottom: 8px;">${message}</div>
+        <div style="font-size: 12px; opacity: 0.9; line-height: 1.4;">
+          解决方法：<br>
+          1. 刷新当前页面<br>
+          2. 或重新启用扩展
+        </div>
+      `;
+    } else {
+      notification.textContent = message;
+    }
     
     notification.style.cssText = `
       position: fixed;
@@ -738,8 +947,9 @@ class TranslationController {
       z-index: 10004;
       transform: translateX(100%);
       transition: transform 0.3s ease;
-      max-width: 300px;
+      max-width: 350px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.4;
     `;
 
     const colors = {
@@ -757,6 +967,8 @@ class TranslationController {
       notification.style.transform = 'translateX(0)';
     }, 100);
 
+    // 对于上下文失效错误，延长显示时间
+    const displayTime = message.includes('扩展上下文已失效') ? 8000 : 3000;
     setTimeout(() => {
       notification.style.transform = 'translateX(100%)';
       setTimeout(() => {
@@ -764,9 +976,16 @@ class TranslationController {
           notification.parentNode.removeChild(notification);
         }
       }, 300);
-    }, 3000);
+    }, displayTime);
   }
 }
 
 // 初始化翻译控制器
 const translationController = new TranslationController();
+
+// 页面卸载时清理资源
+window.addEventListener('beforeunload', () => {
+  if (translationController) {
+    translationController.cleanup();
+  }
+});

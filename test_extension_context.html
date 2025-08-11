@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扩展上下文测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>扩展上下文测试页面</h1>
+    
+    <div class="test-section">
+        <h2>扩展状态检查</h2>
+        <div id="extension-status" class="status warning">检查中...</div>
+        <button onclick="checkExtensionStatus()">重新检查</button>
+    </div>
+
+    <div class="test-section">
+        <h2>翻译功能测试</h2>
+        <p>This is a test paragraph in English that should be translated to Chinese.</p>
+        <p>これは日本語のテスト段落です。中国語に翻訳されるはずです。</p>
+        <p>이것은 한국어 테스트 단락입니다. 중국어로 번역되어야 합니다.</p>
+        <button onclick="testTranslation()">测试翻译功能</button>
+    </div>
+
+    <div class="test-section">
+        <h2>错误处理测试</h2>
+        <button onclick="simulateContextError()">模拟上下文错误</button>
+        <button onclick="simulateTimeout()">模拟超时错误</button>
+    </div>
+
+    <div class="test-section">
+        <h2>日志输出</h2>
+        <div id="log-output" style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+        <button onclick="clearLog()">清除日志</button>
+    </div>
+
+    <script>
+        // 日志功能
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('log-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? 'red' : type === 'warning' ? 'orange' : 'black';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log-output').innerHTML = '';
+        }
+
+        // 检查扩展状态
+        function checkExtensionStatus() {
+            const statusDiv = document.getElementById('extension-status');
+            
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '扩展上下文正常 - ID: ' + chrome.runtime.id;
+                    log('扩展上下文检查成功', 'info');
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '扩展上下文无效';
+                    log('扩展上下文检查失败', 'error');
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '扩展上下文检查出错: ' + error.message;
+                log('扩展上下文检查异常: ' + error.message, 'error');
+            }
+        }
+
+        // 测试翻译功能
+        function testTranslation() {
+            log('开始测试翻译功能...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+                log('扩展上下文无效，无法测试翻译功能', 'error');
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'translate',
+                text: 'Hello, world!',
+                settings: {
+                    aiModel: 'openai-gpt35',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    log('翻译测试失败: ' + chrome.runtime.lastError.message, 'error');
+                } else if (response && response.success) {
+                    log('翻译测试成功: ' + response.translation, 'info');
+                } else {
+                    log('翻译测试失败: ' + (response?.error || '未知错误'), 'error');
+                }
+            });
+        }
+
+        // 模拟上下文错误
+        function simulateContextError() {
+            log('模拟扩展上下文错误...', 'warning');
+            
+            // 尝试发送一个会导致错误的消息
+            try {
+                chrome.runtime.sendMessage({
+                    action: 'invalid-action',
+                    data: 'test'
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        log('模拟错误成功: ' + chrome.runtime.lastError.message, 'warning');
+                    } else {
+                        log('模拟错误未触发', 'info');
+                    }
+                });
+            } catch (error) {
+                log('模拟错误异常: ' + error.message, 'error');
+            }
+        }
+
+        // 模拟超时错误
+        function simulateTimeout() {
+            log('模拟超时错误...', 'warning');
+            
+            // 发送一个不会得到响应的消息
+            try {
+                chrome.runtime.sendMessage({
+                    action: 'timeout-test',
+                    data: 'test'
+                }, (response) => {
+                    // 这个回调可能永远不会被调用
+                    log('超时测试回调被调用', 'info');
+                });
+                
+                // 设置一个超时检查
+                setTimeout(() => {
+                    log('超时测试完成（30秒后）', 'info');
+                }, 30000);
+                
+            } catch (error) {
+                log('超时测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 页面加载时检查扩展状态
+        window.addEventListener('load', () => {
+            log('页面加载完成，开始检查扩展状态', 'info');
+            checkExtensionStatus();
+        });
+
+        // 监听来自扩展的消息
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                log('收到扩展消息: ' + JSON.stringify(message), 'info');
+                sendResponse({ received: true });
+            });
+        }
+    </script>
+</body>
+</html>

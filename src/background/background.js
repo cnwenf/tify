@@ -17,7 +17,19 @@ class BackgroundService {
   // 设置消息监听器
   setupMessageListener() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      this.handleMessage(message, sender, sendResponse);
+      try {
+        // 检查扩展上下文是否有效
+        if (!chrome.runtime?.id) {
+          console.error('Background: 扩展上下文无效');
+          sendResponse({ success: false, error: 'Extension context invalidated' });
+          return true;
+        }
+        
+        this.handleMessage(message, sender, sendResponse);
+      } catch (error) {
+        console.error('Background message handler error:', error);
+        sendResponse({ success: false, error: error.message });
+      }
       return true; // 保持消息通道开放
     });
   }
@@ -25,6 +37,12 @@ class BackgroundService {
   // 处理消息
   async handleMessage(message, sender, sendResponse) {
     try {
+      // 再次检查扩展上下文
+      if (!chrome.runtime?.id) {
+        sendResponse({ success: false, error: 'Extension context invalidated' });
+        return;
+      }
+
       switch (message.action) {
         case 'translate':
           const translation = await this.translationService.translate(
@@ -393,7 +411,7 @@ ${text}`;
         'Authorization': `Bearer ${settings.apiKey}`
       },
       body: JSON.stringify({
-        model: 'qwen-turbo',
+        model: 'qwen3-235b-a22b-instruct-2507',
         input: {
           messages: [
             {
@@ -404,17 +422,30 @@ ${text}`;
         },
         parameters: {
           max_tokens: 1000,
-          temperature: 0.3
+          temperature: 0.3,
+          top_p: 0.8,
+          result_format: 'message'
         }
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Qwen API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Qwen API error response:', errorText);
+      throw new Error(`Qwen API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    return data.output?.text?.trim() || '翻译失败';
+    
+    // 根据阿里云百炼的响应格式解析
+    if (data.output && data.output.choices && data.output.choices[0]) {
+      return data.output.choices[0].message.content.trim() || '翻译失败';
+    } else if (data.output && data.output.text) {
+      return data.output.text.trim() || '翻译失败';
+    } else {
+      console.error('Unexpected Qwen API response format:', data);
+      throw new Error('Qwen API 返回格式异常');
+    }
   }
 
   // 使用自定义端点翻译

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidy 扩展测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .test-section h2 {
+            color: #374151;
+            margin-top: 0;
+        }
+        .test-text {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #4f46e5;
+        }
+        .instructions {
+            background: #dbeafe;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌐 Tidy 扩展测试页面</h1>
+    
+    <div class="instructions">
+        <h3>测试扩展上下文失效处理</h3>
+        <ol>
+            <li>确保 Tidy 扩展已安装并启用</li>
+            <li>使用 Alt+A 快捷键或点击悬浮按钮测试翻译功能</li>
+            <li>在 Chrome 扩展管理页面中禁用然后重新启用扩展</li>
+            <li>观察页面上的错误处理和提示信息</li>
+            <li>刷新页面验证扩展是否正常恢复</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 英文内容测试</h2>
+        <div class="test-text">
+            <p>This is a test paragraph in English. The Tidy extension should be able to translate this content to Chinese when the translation feature is enabled.</p>
+            <p>Here's another paragraph with some technical terms: API, JavaScript, Chrome Extension, and Machine Learning.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🇯🇵 日文内容测试</h2>
+        <div class="test-text">
+            <p>これは日本語のテスト段落です。Tidy拡張機能は、翻訳機能が有効になっているときに、このコンテンツを中国語に翻訳できるはずです。</p>
+            <p>技術用語を含む別の段落：API、JavaScript、Chrome拡張機能、機械学習。</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🇰🇷 韩文内容测试</h2>
+        <div class="test-text">
+            <p>이것은 한국어 테스트 단락입니다. Tidy 확장 프로그램은 번역 기능이 활성화되어 있을 때 이 콘텐츠를 중국어로 번역할 수 있어야 합니다.</p>
+            <p>기술 용어가 포함된 다른 단락: API, JavaScript, Chrome 확장 프로그램, 기계 학습.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🇫🇷 法文内容测试</h2>
+        <div class="test-text">
+            <p>Ceci est un paragraphe de test en français. L'extension Tidy devrait être capable de traduire ce contenu en chinois lorsque la fonction de traduction est activée.</p>
+            <p>Voici un autre paragraphe avec des termes techniques : API, JavaScript, Extension Chrome et Apprentissage automatique.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🇩🇪 德文内容测试</h2>
+        <div class="test-text">
+            <p>Dies ist ein Testabsatz auf Deutsch. Die Tidy-Erweiterung sollte in der Lage sein, diesen Inhalt ins Chinesische zu übersetzen, wenn die Übersetzungsfunktion aktiviert ist.</p>
+            <p>Hier ist ein weiterer Absatz mit technischen Begriffen: API, JavaScript, Chrome-Erweiterung und maschinelles Lernen.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 技术文档测试</h2>
+        <div class="test-text">
+            <h3>Chrome Extension Development</h3>
+            <p>Chrome extensions are software programs that customize the browsing experience. They enable users to tailor Chrome functionality and behavior to individual needs or preferences.</p>
+            <ul>
+                <li>Manifest V3 is the latest version of the extension platform</li>
+                <li>Service workers replace background pages</li>
+                <li>Content scripts can access and modify web pages</li>
+                <li>Message passing enables communication between components</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 数据表格测试</h2>
+        <div class="test-text">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f3f4f6;">
+                        <th style="padding: 8px; border: 1px solid #d1d5db;">Language</th>
+                        <th style="padding: 8px; border: 1px solid #d1d5db;">Native Speakers</th>
+                        <th style="padding: 8px; border: 1px solid #d1d5db;">Country</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">English</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">1.5 billion</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">United States</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">Spanish</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">500 million</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">Spain</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">French</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">300 million</td>
+                        <td style="padding: 8px; border: 1px solid #d1d5db;">France</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>🔍 测试步骤</h3>
+        <ol>
+            <li><strong>正常功能测试：</strong>点击悬浮按钮或使用快捷键测试翻译功能</li>
+            <li><strong>上下文失效测试：</strong>在扩展管理页面禁用扩展，然后重新启用</li>
+            <li><strong>错误处理测试：</strong>观察错误提示和恢复机制</li>
+            <li><strong>恢复测试：</strong>刷新页面验证扩展是否正常工作</li>
+        </ol>
+    </div>
+
+    <script>
+        // 页面加载完成后的提示
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Tidy 扩展测试页面已加载');
+            console.log('请确保 Tidy 扩展已安装并启用');
+        });
+    </script>
+</body>
+</html>

@@ -177,10 +177,20 @@ class PopupController {
   // 翻译当前页面
   async translateCurrentPage() {
     try {
+      // 检查API密钥
+      if (!this.settings.apiKey) {
+        this.showNotification('请先配置API密钥', 'warning');
+        return;
+      }
+
       this.setButtonLoading(this.elements.translatePageBtn, true);
       
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       
+      if (!tab) {
+        throw new Error('无法获取当前标签页');
+      }
+
       await chrome.tabs.sendMessage(tab.id, {
         action: 'translatePage',
         settings: this.settings
@@ -194,7 +204,7 @@ class PopupController {
       this.showNotification('页面翻译已开始', 'success');
     } catch (error) {
       console.error('翻译页面失败:', error);
-      this.showNotification('翻译失败，请重试', 'error');
+      this.showNotification(`翻译失败: ${error.message}`, 'error');
     } finally {
       this.setButtonLoading(this.elements.translatePageBtn, false);
     }
