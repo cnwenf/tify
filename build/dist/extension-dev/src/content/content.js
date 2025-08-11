@@ -67,6 +67,11 @@ class TranslationController {
         this.toggleTranslation();
         sendResponse({ success: true });
         break;
+      case 'showTranslationResult':
+        // 处理右键菜单翻译结果
+        this.showTranslationPopup(message.originalText, message.translation);
+        sendResponse({ success: true });
+        break;
     }
   }
 

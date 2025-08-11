@@ -45,5 +45,19 @@
       "resources": ["src/assets/*", "src/welcome/*"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "commands": {
+    "translate-page": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "翻译当前页面"
+    },
+    "toggle-translation": {
+      "suggested_key": {
+        "default": "Alt+Q"
+      },
+      "description": "切换翻译状态"
+    }
+  }
 }

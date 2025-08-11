@@ -11,6 +11,7 @@ class BackgroundService {
     this.setupMessageListener();
     this.setupContextMenus();
     this.setupInstallHandler();
+    this.setupCommandsListener();
   }
 
   // 设置消息监听器
@@ -123,6 +124,43 @@ class BackgroundService {
         console.log('Extension updated to version:', chrome.runtime.getManifest().version);
       }
     });
+  }
+
+  // 设置快捷键监听器
+  setupCommandsListener() {
+    chrome.commands.onCommand.addListener((command) => {
+      this.handleCommand(command);
+    });
+  }
+
+  // 处理快捷键命令
+  async handleCommand(command) {
+    try {
+      // 获取当前活动标签页
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) return;
+
+      const settings = await this.getSettings();
+
+      switch (command) {
+        case 'translate-page':
+          // 翻译当前页面
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'translatePage',
+            settings: settings
+          });
+          break;
+
+        case 'toggle-translation':
+          // 切换翻译状态
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'toggleTranslation'
+          });
+          break;
+      }
+    } catch (error) {
+      console.error('Command handler error:', error);
+    }
   }
 
   // 设置默认设置
