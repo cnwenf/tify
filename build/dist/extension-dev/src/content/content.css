@@ -1,0 +1,276 @@
+/* content.css - 内容脚本样式 */
+
+/* 双语对照翻译样式 */
+.ai-translation-bilingual {
+  border-left: 3px solid #4f46e5;
+  padding-left: 12px;
+  margin: 8px 0;
+  background: rgba(79, 70, 229, 0.05);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ai-translation-bilingual:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-left-color: #7c3aed;
+}
+
+.ai-translation-bilingual .original-text {
+  color: #4b5563;
+  font-size: 0.95em;
+  line-height: 1.5;
+  margin-bottom: 4px;
+  padding: 4px 0;
+}
+
+.ai-translation-bilingual .translated-text {
+  color: #1f2937;
+  font-weight: 500;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+/* 替换模式翻译样式 */
+.ai-translation-replace {
+  background: linear-gradient(120deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  padding: 2px 4px;
+  border-radius: 3px;
+  border-bottom: 2px solid rgba(79, 70, 229, 0.3);
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.ai-translation-replace:hover {
+  background: linear-gradient(120deg, rgba(79, 70, 229, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+  border-bottom-color: rgba(79, 70, 229, 0.5);
+}
+
+/* 悬浮按钮样式 */
+#ai-translator-float-btn {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+#ai-translator-float-btn .float-btn-tooltip {
+  position: absolute;
+  right: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+#ai-translator-float-btn:hover .float-btn-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 选择翻译按钮样式 */
+#ai-translator-selection-btn {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+/* 进度指示器样式 */
+#ai-translator-progress {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+#ai-translator-progress .progress-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 通知样式 */
+.ai-translator-notification {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 翻译弹窗遮罩 */
+#ai-translator-popup::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: -1;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  #ai-translator-float-btn {
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  #ai-translator-float-btn .float-btn-tooltip {
+    display: none;
+  }
+  
+  #ai-translator-popup {
+    width: 95% !important;
+    max-width: none !important;
+  }
+  
+  .ai-translation-bilingual {
+    padding-left: 8px;
+    margin: 6px 0;
+  }
+  
+  .ai-translation-bilingual .original-text {
+    font-size: 0.9em;
+  }
+  
+  .ai-translation-bilingual .translated-text {
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  #ai-translator-selection-btn {
+    width: 50px;
+    height: 26px;
+    font-size: 11px;
+  }
+  
+  #ai-translator-progress {
+    right: 10px;
+    top: 10px;
+    padding: 12px 16px;
+  }
+  
+  .ai-translator-notification {
+    right: 10px;
+    top: 10px;
+    max-width: calc(100vw - 20px);
+  }
+}
+
+/* 打印样式 */
+@media print {
+  #ai-translator-float-btn,
+  #ai-translator-selection-btn,
+  #ai-translator-progress,
+  .ai-translator-notification,
+  #ai-translator-popup {
+    display: none !important;
+  }
+  
+  .ai-translation-bilingual {
+    background: transparent !important;
+    border-left: 2px solid #666 !important;
+  }
+  
+  .ai-translation-bilingual .translated-text {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .ai-translation-bilingual {
+    background: rgba(79, 70, 229, 0.1);
+    border-left-color: #8b5cf6;
+  }
+  
+  .ai-translation-bilingual .original-text {
+    color: #9ca3af;
+  }
+  
+  .ai-translation-bilingual .translated-text {
+    color: #f3f4f6;
+    background: rgba(31, 41, 55, 0.8);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  
+  .ai-translation-replace {
+    background: linear-gradient(120deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+    border-bottom-color: rgba(139, 92, 246, 0.4);
+  }
+  
+  .ai-translation-replace:hover {
+    background: linear-gradient(120deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+    border-bottom-color: rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .ai-translation-bilingual {
+    border-left-width: 4px;
+    border-left-color: #000;
+  }
+  
+  .ai-translation-bilingual .translated-text {
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+  }
+  
+  .ai-translation-replace {
+    background: #ffff00;
+    border-bottom: 3px solid #000;
+    color: #000;
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .ai-translation-bilingual,
+  .ai-translation-replace,
+  #ai-translator-float-btn,
+  #ai-translator-selection-btn,
+  .ai-translator-notification {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  #ai-translator-progress .progress-spinner {
+    animation: none !important;
+    border-top-color: #4f46e5;
+  }
+}
+
+/* 文本选择样式优化 */
+.ai-translation-bilingual .original-text::selection,
+.ai-translation-bilingual .translated-text::selection {
+  background: rgba(79, 70, 229, 0.3);
+  color: inherit;
+}
+
+.ai-translation-replace::selection {
+  background: rgba(79, 70, 229, 0.4);
+  color: inherit;
+}
+
+/* 焦点样式 */
+#ai-translator-float-btn:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+#ai-translator-selection-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
