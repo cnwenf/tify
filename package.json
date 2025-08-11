@@ -1,0 +1,83 @@
+{
+  "name": "ai-language-translator",
+  "version": "1.0.0",
+  "description": "基于AI LLM的智能双语网页翻译插件",
+  "keywords": [
+    "chrome-extension",
+    "translation",
+    "ai",
+    "llm",
+    "openai",
+    "claude",
+    "gemini"
+  ],
+  "author": "AI Language Translator Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ai-language-translator.git"
+  },
+  "scripts": {
+    "build": "scripts/simple-build.sh",
+    "build:dev": "node scripts/build.js --dev",
+    "build:store": "scripts/simple-build.sh",
+    "build:legacy": "node scripts/build.js --store",
+    "validate": "python3 validate_extension.py",
+    "clean": "rimraf build dist",
+    "test": "node scripts/test.js",
+    "prepare": "npm run validate && npm run build:store",
+    "publish:chrome": "echo 'Upload dist/ai-language-translator-v1.0.0-store.zip to Chrome Web Store'"
+  },
+  "devDependencies": {
+    "archiver": "^6.0.2",
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.3.1",
+    "rimraf": "^5.0.10"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "chrome-extension": {
+    "manifest_version": 3,
+    "permissions": [
+      "activeTab",
+      "storage",
+      "scripting",
+      "contextMenus"
+    ],
+    "host_permissions": [
+      "https://*/*",
+      "http://*/*"
+    ]
+  },
+  "build": {
+    "include": [
+      "manifest.json",
+      "src/**/*"
+    ],
+    "exclude": [
+      "*.git*",
+      "node_modules/**",
+      "build/**",
+      "dist/**",
+      "*.DS_Store",
+      "*.log",
+      "*.tmp",
+      "*.temp",
+      "test.html",
+      "validate_extension.py",
+      "generate_icons.py",
+      "INSTALLATION.md",
+      "README.md",
+      "build.sh",
+      ".vscode/**",
+      ".idea/**",
+      "*.swp",
+      "*.swo",
+      "*~",
+      "package.json",
+      "package-lock.json",
+      "scripts/**"
+    ]
+  }
+}

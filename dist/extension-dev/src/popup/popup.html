@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Language Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- 头部 -->
+    <header class="popup-header">
+      <div class="logo">
+        <img src="../assets/icon32.png" alt="AI Translator" class="logo-icon">
+        <h1>AI Translator</h1>
+      </div>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span class="status-text">就绪</span>
+      </div>
+    </header>
+
+    <!-- 主要控制面板 -->
+    <main class="popup-main">
+      <!-- 翻译开关 -->
+      <div class="control-section">
+        <div class="toggle-container">
+          <label class="toggle-switch">
+            <input type="checkbox" id="translateToggle">
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">启用翻译</span>
+        </div>
+      </div>
+
+      <!-- AI模型选择 -->
+      <div class="control-section">
+        <label for="aiModel" class="section-label">AI 模型</label>
+        <select id="aiModel" class="model-select">
+          <option value="openai-gpt4">OpenAI GPT-4</option>
+          <option value="openai-gpt35">OpenAI GPT-3.5</option>
+          <option value="claude-3">Claude 3</option>
+          <option value="gemini-pro">Gemini Pro</option>
+          <option value="qwen3">阿里云百炼 Qwen3</option>
+          <option value="custom">自定义模型</option>
+        </select>
+      </div>
+
+      <!-- 语言设置 -->
+      <div class="control-section">
+        <div class="language-settings">
+          <div class="language-pair">
+            <label for="sourceLang" class="section-label">源语言</label>
+            <select id="sourceLang" class="lang-select">
+              <option value="auto">自动检测</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+          <div class="language-arrow">→</div>
+          <div class="language-pair">
+            <label for="targetLang" class="section-label">目标语言</label>
+            <select id="targetLang" class="lang-select">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 翻译模式 -->
+      <div class="control-section">
+        <label class="section-label">翻译模式</label>
+        <div class="mode-options">
+          <label class="radio-option">
+            <input type="radio" name="translateMode" value="bilingual" checked>
+            <span class="radio-text">双语对照</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="translateMode" value="replace">
+            <span class="radio-text">替换原文</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 快捷操作 -->
+      <div class="control-section">
+        <div class="quick-actions">
+          <button id="translatePageBtn" class="action-btn primary">
+            <span class="btn-icon">🌐</span>
+            翻译当前页面
+          </button>
+          <button id="clearTranslationBtn" class="action-btn secondary">
+            <span class="btn-icon">🗑️</span>
+            清除翻译
+          </button>
+        </div>
+      </div>
+
+      <!-- API设置 (折叠面板) -->
+      <div class="control-section">
+        <details class="settings-details">
+          <summary class="settings-summary">
+            <span class="settings-icon">⚙️</span>
+            API 设置
+          </summary>
+          <div class="settings-content">
+            <div class="api-config">
+              <label for="apiKey" class="section-label">API Key</label>
+              <div class="input-group">
+                <input type="password" id="apiKey" class="api-input" placeholder="请输入API密钥">
+                <button id="testApiBtn" class="test-btn">测试</button>
+              </div>
+            </div>
+            <div class="api-config">
+              <label for="customEndpoint" class="section-label">自定义端点 (可选)</label>
+              <input type="url" id="customEndpoint" class="api-input" placeholder="https://api.example.com">
+            </div>
+          </div>
+        </details>
+      </div>
+    </main>
+
+    <!-- 底部信息 -->
+    <footer class="popup-footer">
+      <div class="usage-stats">
+        <span id="usageCount">今日翻译: 0 次</span>
+      </div>
+      <div class="footer-links">
+        <a href="#" id="settingsLink">设置</a>
+        <a href="#" id="helpLink">帮助</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
