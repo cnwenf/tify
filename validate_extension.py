@@ -207,8 +207,11 @@ def main():
     print("🔍 AI Language Translator Chrome 扩展验证")
     print("="*60)
     
-    # Change to workspace directory
-    os.chdir('/workspace')
+    # Change to script directory if manifest.json is not in current directory
+    if not os.path.exists('manifest.json'):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"📁 切换到脚本目录: {script_dir}")
+        os.chdir(script_dir)
     
     # Run all checks
     manifest_ok = check_manifest()
