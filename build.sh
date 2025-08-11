@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AI Language Translator Chrome Extension Build Script
+# Tidy Chrome Extension Build Script
 # 用于macOS的构建脚本
 
 set -e  # 遇到错误时停止执行
@@ -62,7 +62,7 @@ PROJECT_DIR="$SCRIPT_DIR"
 BUILD_DIR="$PROJECT_DIR/build"
 DIST_DIR="$BUILD_DIR/dist"
 TEMP_DIR="$BUILD_DIR/temp"
-ZIP_NAME="ai-language-translator"
+ZIP_NAME="tidy"
 
 # 从manifest.json读取版本号
 if [[ -f "$PROJECT_DIR/manifest.json" ]]; then
@@ -103,7 +103,7 @@ EXCLUDE_PATTERNS=(
 )
 
 main() {
-    log_info "开始构建 AI Language Translator Chrome 扩展..."
+    log_info "开始构建 Tidy Chrome 扩展..."
     
     # 检查依赖
     check_dependencies
@@ -210,7 +210,7 @@ main() {
 
 # 显示帮助信息
 show_help() {
-    echo "AI Language Translator Chrome Extension Build Script"
+    echo "Tidy Chrome Extension Build Script"
     echo
     echo "用法: $0 [选项]"
     echo
