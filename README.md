@@ -39,6 +39,127 @@ AI Language Translator 是一款基于人工智能的浏览器翻译插件，旨
 - **在线阅读**: 支持Epub、Mobi等格式电子书
 - **双语导出**: 生成双语对照的电子书文件
 
+## 构建和部署
+
+### 快速开始
+
+#### 前置要求
+- macOS 操作系统
+- Bash shell (macOS 自带)
+- zip 命令 (macOS 自带)
+- Chrome 浏览器
+
+#### 一键构建
+```bash
+# 克隆项目
+git clone <repository-url>
+cd tify
+
+# 运行构建脚本
+./build.sh
+```
+
+#### 构建选项
+```bash
+# 显示帮助信息
+./build.sh --help
+
+# 清理构建文件
+./build.sh --clean
+
+# 详细输出模式
+./build.sh --verbose
+```
+
+### 构建输出
+
+构建脚本会生成以下文件：
+
+```
+build/
+└── dist/
+    ├── ai-language-translator-v1.0.0.zip    # 用于Chrome Web Store
+    └── extension-dev/                        # 用于开发者模式
+        ├── manifest.json
+        └── src/
+            ├── background/
+            ├── content/
+            ├── popup/
+            ├── assets/
+            └── welcome/
+```
+
+### 安装方法
+
+#### 方式1: 开发者模式安装（推荐用于测试）
+
+1. 打开 Chrome 浏览器
+2. 在地址栏输入 `chrome://extensions/`
+3. 开启右上角的 **"开发者模式"**
+4. 点击 **"加载已解压的扩展程序"**
+5. 选择 `build/dist/extension-dev/` 文件夹
+6. 扩展将立即加载并可用
+
+#### 方式2: Chrome Web Store 发布
+
+1. 访问 [Chrome 开发者控制台](https://chrome.google.com/webstore/devconsole/)
+2. 登录你的 Google 开发者账户
+3. 点击 **"添加新项"**
+4. 上传 `build/dist/ai-language-translator-v1.0.0.zip` 文件
+5. 按照指引完成发布流程
+
+### 构建脚本功能
+
+`build.sh` 脚本提供了以下功能：
+
+- ✅ **自动版本检测**: 从 `manifest.json` 读取版本号
+- ✅ **智能文件过滤**: 自动排除开发文件和临时文件
+- ✅ **格式验证**: 验证 `manifest.json` 格式正确性
+- ✅ **双重输出**: 同时生成开发版本和发布版本
+- ✅ **彩色日志**: 清晰的构建过程显示
+- ✅ **错误处理**: 完善的错误检查和提示
+- ✅ **自动清理**: 构建完成后自动清理临时文件
+
+### 文件结构说明
+
+```
+项目根目录/
+├── manifest.json           # 扩展配置文件
+├── build.sh               # 构建脚本
+├── src/                   # 源代码目录
+│   ├── background/        # 后台脚本
+│   ├── content/          # 内容脚本
+│   ├── popup/            # 弹出窗口
+│   ├── assets/           # 静态资源
+│   └── welcome/          # 欢迎页面
+├── build/                # 构建输出 (自动生成)
+└── README.md             # 项目说明
+```
+
+### 开发调试
+
+#### 本地开发
+1. 使用开发者模式安装扩展
+2. 修改源代码后，在扩展管理页面点击 **"重新加载"**
+3. 使用 Chrome DevTools 调试
+
+#### 常见问题
+
+**Q: 构建失败，提示权限错误？**
+```bash
+chmod +x build.sh
+```
+
+**Q: 扩展安装后无法使用？**
+- 检查 `manifest.json` 格式是否正确
+- 确认所有必需文件都已包含
+- 查看 Chrome 扩展管理页面的错误信息
+
+**Q: 如何更新扩展版本？**
+1. 修改 `manifest.json` 中的 `version` 字段
+2. 重新运行 `./build.sh`
+3. 安装新版本
+
 ## 技术架构
 
 ### 前端技术栈

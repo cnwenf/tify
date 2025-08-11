@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Language Translator - 欢迎</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+    
+    .welcome-container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 600px;
+      margin: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #1f2937;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: #6b7280;
+      margin-bottom: 30px;
+    }
+    
+    .features {
+      text-align: left;
+      margin: 30px 0;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 20px;
+      color: white;
+    }
+    
+    .feature-text h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #1f2937;
+    }
+    
+    .feature-text p {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .get-started {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: transform 0.2s;
+    }
+    
+    .get-started:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="welcome-container">
+    <div class="logo">🌐</div>
+    <h1>欢迎使用 AI Language Translator</h1>
+    <p class="subtitle">基于 AI 大语言模型的智能双语翻译插件</p>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-text">
+          <h3>AI 驱动翻译</h3>
+          <p>支持 OpenAI GPT、Claude、Gemini 等多种 AI 模型</p>
+        </div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🔄</div>
+        <div class="feature-text">
+          <h3>双语对照显示</h3>
+          <p>原文和译文同时显示，提高阅读理解效率</p>
+        </div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text">
+          <h3>一键快速翻译</h3>
+          <p>支持整页翻译、选中翻译、快捷键操作</p>
+        </div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🎨</div>
+        <div class="feature-text">
+          <h3>智能界面设计</h3>
+          <p>保持网页原有排版，无缝融入浏览体验</p>
+        </div>
+      </div>
+    </div>
+    
+    <button class="get-started" onclick="closeWelcome()">开始使用</button>
+  </div>
+  
+  <script>
+    function closeWelcome() {
+      window.close();
+    }
+  </script>
+</body>
+</html>
