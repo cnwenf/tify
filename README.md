@@ -44,6 +44,8 @@ Tidy 是一款基于人工智能的浏览器翻译插件，旨在为用户提供
 ### 方式1: 直接下载（推荐）
 
 #### 下载链接
+> ✅ **最新构建**: v1.0.0 - 已完成构建和验证，可直接使用
+
 - **开发版本**: [下载 extension-dev 文件夹](./build/dist/extension-dev/) - 用于开发者模式加载
 - **打包版本**: [下载 tidy-v1.0.0.zip](./build/dist/tidy-v1.0.0.zip) - 22KB，用于Chrome Web Store发布
 
