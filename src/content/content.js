@@ -13,6 +13,7 @@ class TranslationController {
 
   // 初始化
   async init() {
+    console.log('Tidy: 初始化翻译控制器');
     await this.loadSettings();
     this.createFloatButton();
     this.bindEvents();
@@ -20,8 +21,12 @@ class TranslationController {
     
     // 监听设置变化
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log('Tidy: 收到消息:', message);
       this.handleMessage(message, sender, sendResponse);
     });
+    
+    console.log('Tidy: 翻译控制器初始化完成');
+    console.log('Tidy: 当前设置:', this.settings);
   }
 
   // 加载设置
@@ -49,29 +54,39 @@ class TranslationController {
 
   // 处理消息
   handleMessage(message, sender, sendResponse) {
+    console.log('Tidy: 处理消息:', message.action);
+    
     switch (message.action) {
       case 'translatePage':
+        console.log('Tidy: 开始翻译页面');
         this.translatePage(message.settings);
         sendResponse({ success: true });
         break;
       case 'clearTranslation':
+        console.log('Tidy: 清除翻译');
         this.clearTranslation();
         sendResponse({ success: true });
         break;
       case 'settingsChanged':
+        console.log('Tidy: 设置已更新');
         this.settings = message.settings;
         this.updateFloatButton();
         sendResponse({ success: true });
         break;
       case 'toggleTranslation':
+        console.log('Tidy: 切换翻译状态');
         this.toggleTranslation();
         sendResponse({ success: true });
         break;
       case 'showTranslationResult':
+        console.log('Tidy: 显示翻译结果');
         // 处理右键菜单翻译结果
         this.showTranslationPopup(message.originalText, message.translation);
         sendResponse({ success: true });
         break;
+      default:
+        console.log('Tidy: 未知消息类型:', message.action);
+        sendResponse({ success: false, error: 'Unknown action' });
     }
   }
 
@@ -271,13 +286,23 @@ class TranslationController {
 
       const currentSettings = settings || this.settings;
       
+      // 检查API密钥
+      if (!currentSettings.apiKey) {
+        this.hideProgress();
+        this.showNotification('请先在插件设置中配置API密钥', 'warning');
+        return;
+      }
+      
       // 获取需要翻译的文本元素
       const elements = this.getTranslatableElements();
       
       if (elements.length === 0) {
+        this.hideProgress();
         this.showNotification('未找到可翻译的内容', 'warning');
         return;
       }
+
+      console.log(`找到 ${elements.length} 个可翻译元素`);
 
       // 批量翻译
       const batchSize = 5; // 每批翻译5个元素
@@ -295,7 +320,8 @@ class TranslationController {
       
     } catch (error) {
       console.error('翻译失败:', error);
-      this.showNotification('翻译失败，请重试', 'error');
+      this.hideProgress();
+      this.showNotification(`翻译失败: ${error.message}`, 'error');
     } finally {
       this.isTranslating = false;
     }
@@ -349,13 +375,18 @@ class TranslationController {
         const originalText = element.textContent.trim();
         if (!originalText) return;
 
+        console.log('正在翻译:', originalText.substring(0, 50) + '...');
         const translation = await this.requestTranslation(originalText, settings);
         
         if (translation) {
           this.applyTranslation(element, originalText, translation, settings.translateMode);
+          console.log('翻译完成:', translation.substring(0, 50) + '...');
+        } else {
+          console.warn('翻译返回空结果:', originalText.substring(0, 50) + '...');
         }
       } catch (error) {
         console.error('翻译元素失败:', error);
+        // 继续翻译其他元素，不中断整个流程
       }
     });
 
@@ -364,16 +395,24 @@ class TranslationController {
 
   // 请求翻译
   async requestTranslation(text, settings) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
         action: 'translate',
         text: text,
         settings: settings
       }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Runtime error:', chrome.runtime.lastError);
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        
         if (response && response.success) {
           resolve(response.translation);
         } else {
-          resolve(null);
+          const errorMessage = response?.error || '翻译请求失败';
+          console.error('Translation error:', errorMessage);
+          reject(new Error(errorMessage));
         }
       });
     });
