@@ -190,7 +190,8 @@ class TranslationService {
       'openai-gpt4': 'https://api.openai.com/v1/chat/completions',
       'openai-gpt35': 'https://api.openai.com/v1/chat/completions',
       'claude-3': 'https://api.anthropic.com/v1/messages',
-      'gemini-pro': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+      'gemini-pro': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+      'qwen3': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'
     };
   }
 
@@ -217,6 +218,8 @@ class TranslationService {
         translation = await this.translateWithClaude(text, sourceLang, targetLang, settings);
       } else if (model === 'gemini-pro') {
         translation = await this.translateWithGemini(text, sourceLang, targetLang, settings);
+      } else if (model === 'qwen3') {
+        translation = await this.translateWithQwen(text, sourceLang, targetLang, settings);
       } else {
         translation = await this.translateWithCustom(text, sourceLang, targetLang, settings);
       }
@@ -335,6 +338,45 @@ ${text}`;
 
     const data = await response.json();
     return data.candidates[0]?.content?.parts[0]?.text?.trim() || '翻译失败';
+  }
+
+  // 使用阿里云百炼Qwen翻译
+  async translateWithQwen(text, sourceLang, targetLang, settings) {
+    const endpoint = settings.customEndpoint || this.apiEndpoints['qwen3'];
+
+    const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
+
+${text}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'qwen-turbo',
+        input: {
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        },
+        parameters: {
+          max_tokens: 1000,
+          temperature: 0.3
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Qwen API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.output?.text?.trim() || '翻译失败';
   }
 
   // 使用自定义端点翻译
