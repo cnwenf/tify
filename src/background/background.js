@@ -45,26 +45,72 @@ class BackgroundService {
 
       switch (message.action) {
         case 'translate':
-          const translation = await this.translationService.translate(
-            message.text,
-            message.settings
-          );
-          sendResponse({ success: true, translation });
+          try {
+            // 添加超时处理
+            const timeoutPromise = new Promise((_, reject) => {
+              // 根据模型设置不同的超时时间
+              const timeoutMs = message.settings?.aiModel === 'qwen3' ? 90000 : 60000;
+              setTimeout(() => {
+                reject(new Error(`翻译请求超时 (${timeoutMs / 1000}秒)，请检查网络连接`));
+              }, timeoutMs);
+            });
+
+            const translationPromise = this.translationService.translate(
+              message.text,
+              message.settings
+            );
+
+            const translation = await Promise.race([translationPromise, timeoutPromise]);
+            sendResponse({ success: true, translation });
+          } catch (error) {
+            console.error('Translation error in background:', error);
+            
+            // 根据错误类型提供更具体的错误信息
+            let errorMessage = error.message;
+            if (error.message.includes('timeout')) {
+              errorMessage = '翻译请求超时，请检查网络连接';
+            } else if (error.message.includes('API error: 401')) {
+              errorMessage = 'API密钥无效或已过期，请检查配置';
+            } else if (error.message.includes('API error: 429')) {
+              errorMessage = 'API调用频率超限，请稍后重试';
+            } else if (error.message.includes('API error: 403')) {
+              errorMessage = 'API访问被拒绝，请检查权限和余额';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+              errorMessage = '网络连接失败，请检查网络连接';
+            }
+            
+            sendResponse({ success: false, error: errorMessage });
+          }
           break;
 
         case 'testAPI':
-          const testResult = await this.translationService.testAPI(message.settings);
-          sendResponse(testResult);
+          try {
+            const testResult = await this.translationService.testAPI(message.settings);
+            sendResponse(testResult);
+          } catch (error) {
+            console.error('API test error:', error);
+            sendResponse({ success: false, error: error.message });
+          }
           break;
 
         case 'getSettings':
-          const settings = await this.getSettings();
-          sendResponse({ success: true, settings });
+          try {
+            const settings = await this.getSettings();
+            sendResponse({ success: true, settings });
+          } catch (error) {
+            console.error('Get settings error:', error);
+            sendResponse({ success: false, error: error.message });
+          }
           break;
 
         case 'saveSettings':
-          await this.saveSettings(message.settings);
-          sendResponse({ success: true });
+          try {
+            await this.saveSettings(message.settings);
+            sendResponse({ success: true });
+          } catch (error) {
+            console.error('Save settings error:', error);
+            sendResponse({ success: false, error: error.message });
+          }
           break;
 
         default:
@@ -399,53 +445,127 @@ ${text}`;
   // 使用阿里云百炼Qwen翻译
   async translateWithQwen(text, sourceLang, targetLang, settings) {
     const endpoint = settings.customEndpoint || this.apiEndpoints['qwen3'];
+    const maxRetries = 2;
+    let lastError;
 
-    const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Qwen3 翻译尝试 ${attempt + 1}/${maxRetries + 1}`);
+        
+        const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
 
 ${text}`;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'qwen3-235b-a22b-instruct-2507',
-        input: {
-          messages: [
-            {
-              role: 'user',
-              content: prompt
+        const requestBody = {
+          model: 'qwen3-235b-a22b-instruct-2507',
+          input: {
+            messages: [
+              {
+                role: 'user',
+                content: prompt
+              }
+            ]
+          },
+          parameters: {
+            max_tokens: 1000,
+            temperature: 0.3,
+            top_p: 0.8,
+            result_format: 'message'
+          }
+        };
+
+        console.log('Qwen3 请求体:', JSON.stringify(requestBody, null, 2));
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.apiKey}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        console.log('Qwen3 响应状态:', response.status);
+        console.log('Qwen3 响应头:', Object.fromEntries(response.headers.entries()));
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Qwen3 API 错误响应:', errorText);
+          
+          // 根据状态码判断是否应该重试
+          if (response.status === 429) {
+            // 频率限制，等待更长时间后重试
+            if (attempt < maxRetries) {
+              console.log('Qwen3 频率限制，等待5秒后重试...');
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              continue;
             }
-          ]
-        },
-        parameters: {
-          max_tokens: 1000,
-          temperature: 0.3,
-          top_p: 0.8,
-          result_format: 'message'
+            throw new Error(`Qwen API 调用频率超限: ${response.status} - ${errorText}`);
+          } else if (response.status === 401) {
+            // 认证错误，不需要重试
+            throw new Error(`Qwen API 认证失败，请检查API密钥: ${response.status} - ${errorText}`);
+          } else if (response.status === 403) {
+            // 权限错误，不需要重试
+            throw new Error(`Qwen API 访问被拒绝，请检查权限和余额: ${response.status} - ${errorText}`);
+          } else if (response.status >= 500 && attempt < maxRetries) {
+            // 服务器错误，可以重试
+            console.log('Qwen3 服务器错误，等待3秒后重试...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            continue;
+          } else {
+            throw new Error(`Qwen API error: ${response.status} - ${errorText}`);
+          }
         }
-      })
-    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Qwen API error response:', errorText);
-      throw new Error(`Qwen API error: ${response.status} - ${errorText}`);
+        const data = await response.json();
+        console.log('Qwen3 API 响应数据:', JSON.stringify(data, null, 2));
+        
+        // 根据阿里云百炼的响应格式解析
+        if (data.output && data.output.choices && data.output.choices[0]) {
+          const translation = data.output.choices[0].message.content.trim();
+          if (translation) {
+            console.log('Qwen3 翻译成功:', translation);
+            return translation;
+          } else {
+            throw new Error('Qwen API 返回空翻译结果');
+          }
+        } else if (data.output && data.output.text) {
+          const translation = data.output.text.trim();
+          if (translation) {
+            console.log('Qwen3 翻译成功:', translation);
+            return translation;
+          } else {
+            throw new Error('Qwen API 返回空翻译结果');
+          }
+        } else if (data.code && data.message) {
+          // 处理API错误响应格式
+          console.error('Qwen API 错误:', data.code, data.message);
+          throw new Error(`Qwen API 错误: ${data.code} - ${data.message}`);
+        } else {
+          console.error('Qwen3 意外的响应格式:', data);
+          throw new Error('Qwen API 返回格式异常');
+        }
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`Qwen3 翻译尝试 ${attempt + 1} 失败:`, error.message);
+        
+        // 如果是网络错误且还有重试机会，则继续重试
+        if ((error.name === 'TypeError' || error.message.includes('fetch')) && attempt < maxRetries) {
+          console.log('Qwen3 网络错误，等待2秒后重试...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+        
+        // 如果不是可重试的错误，或者已经达到最大重试次数，抛出错误
+        if (attempt === maxRetries) {
+          break;
+        }
+      }
     }
 
-    const data = await response.json();
-    
-    // 根据阿里云百炼的响应格式解析
-    if (data.output && data.output.choices && data.output.choices[0]) {
-      return data.output.choices[0].message.content.trim() || '翻译失败';
-    } else if (data.output && data.output.text) {
-      return data.output.text.trim() || '翻译失败';
-    } else {
-      console.error('Unexpected Qwen API response format:', data);
-      throw new Error('Qwen API 返回格式异常');
-    }
+    // 所有重试都失败了
+    throw new Error(`Qwen3 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
   }
 
   // 使用自定义端点翻译

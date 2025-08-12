@@ -7,8 +7,16 @@ class TranslationController {
     this.floatButton = null;
     this.isTranslating = false;
     this.selectionMode = false;
+    this.extensionCheckInterval = null;
     
-    this.init();
+    // 延迟初始化，确保DOM已加载
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.init();
+      });
+    } else {
+      this.init();
+    }
   }
 
   // 初始化
@@ -21,32 +29,37 @@ class TranslationController {
       return;
     }
     
-    await this.loadSettings();
-    this.createFloatButton();
-    this.bindEvents();
-    this.setupSelectionTranslation();
-    
-    // 监听设置变化
     try {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        console.log('Tidy: 收到消息:', message);
-        this.handleMessage(message, sender, sendResponse);
-      });
+      await this.loadSettings();
+      this.createFloatButton();
+      this.bindEvents();
+      this.setupSelectionTranslation();
+      
+      // 监听设置变化
+      try {
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+          console.log('Tidy: 收到消息:', message);
+          this.handleMessage(message, sender, sendResponse);
+        });
+      } catch (error) {
+        console.error('Tidy: 设置消息监听器失败:', error);
+      }
+      
+      // 监听扩展状态变化
+      this.setupExtensionStateListener();
+      
+      console.log('Tidy: 翻译控制器初始化完成');
+      console.log('Tidy: 当前设置:', this.settings);
     } catch (error) {
-      console.error('Tidy: 设置消息监听器失败:', error);
+      console.error('Tidy: 初始化失败:', error);
+      this.showNotification('初始化失败，请刷新页面重试', 'error');
     }
-    
-    // 监听扩展状态变化
-    this.setupExtensionStateListener();
-    
-    console.log('Tidy: 翻译控制器初始化完成');
-    console.log('Tidy: 当前设置:', this.settings);
   }
 
   // 设置扩展状态监听器
   setupExtensionStateListener() {
     // 定期检查扩展上下文是否有效
-    setInterval(() => {
+    this.extensionCheckInterval = setInterval(() => {
       if (!chrome.runtime?.id) {
         console.warn('Tidy: 检测到扩展上下文失效，尝试重新初始化');
         this.handleExtensionContextInvalidated();
@@ -54,8 +67,71 @@ class TranslationController {
     }, 30000); // 每30秒检查一次
   }
 
+  // 移除事件监听器
+  removeEventListeners() {
+    // 移除键盘事件监听器
+    if (this.boundKeydownHandler) {
+      document.removeEventListener('keydown', this.boundKeydownHandler);
+    }
+    if (this.boundMouseupHandler) {
+      document.removeEventListener('mouseup', this.boundMouseupHandler);
+    }
+    if (this.boundMousedownHandler) {
+      document.removeEventListener('mousedown', this.boundMousedownHandler);
+    }
+    if (this.boundContextmenuHandler) {
+      document.removeEventListener('contextmenu', this.boundContextmenuHandler);
+    }
+    
+    // 移除悬浮按钮事件监听器
+    if (this.floatButton) {
+      if (this.boundFloatButtonMouseenter) {
+        this.floatButton.removeEventListener('mouseenter', this.boundFloatButtonMouseenter);
+      }
+      if (this.boundFloatButtonMouseleave) {
+        this.floatButton.removeEventListener('mouseleave', this.boundFloatButtonMouseleave);
+      }
+      if (this.boundFloatButtonClick) {
+        this.floatButton.removeEventListener('click', this.boundFloatButtonClick);
+      }
+    }
+  }
+
+  // 清理资源
+  cleanup() {
+    console.log('Tidy: 开始清理资源...');
+    
+    // 停止翻译
+    this.isTranslating = false;
+    
+    // 清除翻译
+    this.clearTranslation();
+    
+    // 隐藏选择按钮
+    this.hideSelectionButton();
+    
+    // 移除事件监听器
+    this.removeEventListeners();
+    
+    // 停止定期检查
+    if (this.extensionCheckInterval) {
+      clearInterval(this.extensionCheckInterval);
+      this.extensionCheckInterval = null;
+    }
+    
+    // 移除悬浮按钮
+    if (this.floatButton && this.floatButton.parentNode) {
+      this.floatButton.parentNode.removeChild(this.floatButton);
+      this.floatButton = null;
+    }
+    
+    console.log('Tidy: 资源清理完成');
+  }
+
   // 处理扩展上下文失效
   handleExtensionContextInvalidated() {
+    console.warn('Tidy: 扩展上下文已失效，开始清理...');
+    
     // 清理现有元素
     this.clearTranslation();
     this.hideSelectionButton();
@@ -66,8 +142,17 @@ class TranslationController {
       this.floatButton = null;
     }
     
+    // 移除所有相关的事件监听器
+    this.removeEventListeners();
+    
     // 显示提示信息
     this.showNotification('扩展上下文已失效，请刷新页面重试', 'warning');
+    
+    // 停止定期检查
+    if (this.extensionCheckInterval) {
+      clearInterval(this.extensionCheckInterval);
+      this.extensionCheckInterval = null;
+    }
     
     // 尝试重新初始化
     setTimeout(() => {
@@ -75,7 +160,7 @@ class TranslationController {
         console.log('Tidy: 扩展上下文已恢复，重新初始化');
         this.init();
       }
-    }, 1000);
+    }, 2000);
   }
 
   // 加载设置
@@ -198,21 +283,27 @@ class TranslationController {
       user-select: none;
     `;
 
-    // 添加悬停效果
-    this.floatButton.addEventListener('mouseenter', () => {
+    // 绑定悬浮按钮事件处理器
+    this.boundFloatButtonMouseenter = () => {
       this.floatButton.style.transform = 'translateY(-50%) scale(1.1)';
       this.floatButton.style.boxShadow = '0 6px 25px rgba(79, 70, 229, 0.4)';
-    });
+    };
 
-    this.floatButton.addEventListener('mouseleave', () => {
+    this.boundFloatButtonMouseleave = () => {
       this.floatButton.style.transform = 'translateY(-50%) scale(1)';
       this.floatButton.style.boxShadow = '0 4px 20px rgba(79, 70, 229, 0.3)';
-    });
+    };
+
+    this.boundFloatButtonClick = () => {
+      this.toggleTranslation();
+    };
+
+    // 添加悬停效果
+    this.floatButton.addEventListener('mouseenter', this.boundFloatButtonMouseenter);
+    this.floatButton.addEventListener('mouseleave', this.boundFloatButtonMouseleave);
 
     // 点击事件
-    this.floatButton.addEventListener('click', () => {
-      this.toggleTranslation();
-    });
+    this.floatButton.addEventListener('click', this.boundFloatButtonClick);
 
     document.body.appendChild(this.floatButton);
     this.updateFloatButton();
@@ -234,8 +325,8 @@ class TranslationController {
 
   // 绑定事件
   bindEvents() {
-    // 快捷键支持
-    document.addEventListener('keydown', (e) => {
+    // 绑定事件处理器
+    this.boundKeydownHandler = (e) => {
       // Alt + A: 切换翻译
       if (e.altKey && e.key === 'a') {
         e.preventDefault();
@@ -247,20 +338,25 @@ class TranslationController {
         e.preventDefault();
         this.translatePage();
       }
-    });
+    };
 
-    // 右键菜单支持（通过background script处理）
-    document.addEventListener('contextmenu', (e) => {
+    this.boundContextmenuHandler = (e) => {
       // 记录右键位置，用于可能的翻译操作
       this.lastContextMenuPosition = { x: e.clientX, y: e.clientY };
-    });
+    };
+
+    // 快捷键支持
+    document.addEventListener('keydown', this.boundKeydownHandler);
+
+    // 右键菜单支持（通过background script处理）
+    document.addEventListener('contextmenu', this.boundContextmenuHandler);
   }
 
   // 设置选择翻译
   setupSelectionTranslation() {
     let selectionTimeout;
 
-    document.addEventListener('mouseup', () => {
+    this.boundMouseupHandler = () => {
       clearTimeout(selectionTimeout);
       selectionTimeout = setTimeout(() => {
         const selection = window.getSelection();
@@ -270,11 +366,14 @@ class TranslationController {
           this.hideSelectionButton();
         }
       }, 200);
-    });
+    };
 
-    document.addEventListener('mousedown', () => {
+    this.boundMousedownHandler = () => {
       this.hideSelectionButton();
-    });
+    };
+
+    document.addEventListener('mouseup', this.boundMouseupHandler);
+    document.addEventListener('mousedown', this.boundMousedownHandler);
   }
 
   // 显示选择翻译按钮
@@ -374,24 +473,87 @@ class TranslationController {
 
       console.log(`找到 ${elements.length} 个可翻译元素`);
 
-      // 批量翻译
+      // 批量翻译（改为顺序处理）
       const batchSize = 5; // 每批翻译5个元素
+      let successCount = 0;
+      let failureCount = 0;
+      
       for (let i = 0; i < elements.length; i += batchSize) {
+        // 检查翻译是否被取消
+        if (!this.isTranslating) {
+          console.log('Tidy: 翻译被用户取消');
+          break;
+        }
+
+        // 检查扩展上下文
+        if (!chrome.runtime?.id) {
+          console.error('Tidy: 翻译过程中检测到扩展上下文失效');
+          this.handleExtensionContextInvalidated();
+          break;
+        }
+
         const batch = elements.slice(i, i + batchSize);
-        await this.translateBatch(batch, currentSettings);
+        this.updateProgress(`翻译进度: ${Math.round((i / elements.length) * 100)}% (${i}/${elements.length})`);
         
-        // 更新进度
-        const progress = Math.round(((i + batch.length) / elements.length) * 100);
-        this.updateProgress(`翻译进度: ${progress}%`);
+        try {
+          const results = await this.translateBatch(batch, currentSettings);
+          
+          // 统计结果
+          results.forEach(result => {
+            if (result.success) {
+              successCount++;
+            } else {
+              failureCount++;
+            }
+          });
+
+          // 更新进度
+          const progress = Math.round(((i + batch.length) / elements.length) * 100);
+          this.updateProgress(`翻译进度: ${progress}% (${successCount}成功, ${failureCount}失败)`);
+          
+          // 如果批次翻译失败过多，询问用户是否继续
+          const batchFailureRate = results.filter(r => !r.success).length / results.length;
+          if (batchFailureRate > 0.8 && failureCount > 5) {
+            console.warn('Tidy: 当前批次失败率过高，暂停翻译');
+            this.showNotification(`翻译失败率过高 (${Math.round(batchFailureRate * 100)}%)，已暂停`, 'warning');
+            break;
+          }
+          
+        } catch (error) {
+          console.error('批量翻译失败:', error);
+          
+          // 如果是上下文失效，停止翻译
+          if (error.message.includes('扩展上下文已失效')) {
+            break;
+          }
+          
+          // 其他错误，继续下一批
+          failureCount += batch.length;
+        }
       }
 
       this.hideProgress();
-      this.showNotification('页面翻译完成', 'success');
+      
+      // 显示最终结果
+      if (successCount > 0) {
+        if (failureCount > 0) {
+          this.showNotification(`页面翻译完成：${successCount}个成功，${failureCount}个失败`, 'warning');
+        } else {
+          this.showNotification(`页面翻译完成：共翻译${successCount}个元素`, 'success');
+        }
+      } else {
+        this.showNotification('翻译失败，请检查网络连接和API配置', 'error');
+      }
       
     } catch (error) {
       console.error('翻译失败:', error);
       this.hideProgress();
-      this.showNotification(`翻译失败: ${error.message}`, 'error');
+      
+      if (error.message.includes('扩展上下文已失效')) {
+        this.showNotification('扩展上下文已失效，请刷新页面重试', 'error');
+      } else {
+        this.showNotification(`翻译失败: ${error.message}`, 'error');
+      }
     } finally {
       this.isTranslating = false;
     }
@@ -440,67 +602,211 @@ class TranslationController {
 
   // 批量翻译
   async translateBatch(elements, settings) {
-    const promises = elements.map(async (element) => {
+    const results = [];
+    
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i];
+      
       try {
-        const originalText = element.textContent.trim();
-        if (!originalText) return;
-
-        console.log('正在翻译:', originalText.substring(0, 50) + '...');
-        const translation = await this.requestTranslation(originalText, settings);
-        
-        if (translation) {
-          this.applyTranslation(element, originalText, translation, settings.translateMode);
-          console.log('翻译完成:', translation.substring(0, 50) + '...');
-        } else {
-          console.warn('翻译返回空结果:', originalText.substring(0, 50) + '...');
+        // 每个元素翻译前都检查上下文
+        if (!chrome.runtime?.id) {
+          console.error('Tidy: 批量翻译过程中检测到扩展上下文失效');
+          this.handleExtensionContextInvalidated();
+          throw new Error('扩展上下文已失效，请刷新页面');
         }
-      } catch (error) {
-        console.error('翻译元素失败:', error);
-        // 继续翻译其他元素，不中断整个流程
-      }
-    });
 
-    await Promise.all(promises);
+        // 检查翻译是否被取消
+        if (!this.isTranslating) {
+          console.log('Tidy: 翻译已被取消，停止批量翻译');
+          break;
+        }
+
+        const originalText = element.textContent.trim();
+        if (!originalText) {
+          continue;
+        }
+
+        console.log(`正在翻译 (${i + 1}/${elements.length}):`, originalText.substring(0, 50) + '...');
+        
+        try {
+          const translation = await this.requestTranslation(originalText, settings);
+          
+          if (translation) {
+            this.applyTranslation(element, originalText, translation, settings.translateMode);
+            console.log('翻译完成:', translation.substring(0, 50) + '...');
+            results.push({ success: true, element, originalText, translation });
+          } else {
+            console.warn('翻译返回空结果:', originalText.substring(0, 50) + '...');
+            results.push({ success: false, element, originalText, error: '翻译返回空结果' });
+          }
+        } catch (translationError) {
+          console.error('翻译单个元素失败:', translationError.message);
+          
+          // 如果是上下文失效错误，停止整个批量翻译
+          if (translationError.message.includes('扩展上下文已失效')) {
+            console.error('Tidy: 扩展上下文失效，停止批量翻译');
+            throw translationError;
+          }
+          
+          // 其他错误继续翻译下一个元素
+          results.push({ success: false, element, originalText, error: translationError.message });
+          
+          // 如果连续失败太多，考虑停止
+          const recentFailures = results.slice(-5).filter(r => !r.success).length;
+          if (recentFailures >= 5) {
+            console.warn('Tidy: 连续翻译失败过多，暂停批量翻译');
+            this.showNotification('翻译错误过多，已暂停。请检查网络连接和API配置', 'warning');
+            break;
+          }
+        }
+
+        // 在每个翻译之间添加短暂延迟，避免API限流
+        if (i < elements.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+      } catch (error) {
+        console.error('批量翻译过程出错:', error);
+        results.push({ success: false, element, error: error.message });
+        
+        // 如果是严重错误（如上下文失效），停止整个翻译过程
+        if (error.message.includes('扩展上下文已失效')) {
+          break;
+        }
+      }
+    }
+
+    return results;
   }
 
   // 请求翻译
   async requestTranslation(text, settings) {
-    return new Promise((resolve, reject) => {
-      // 检查扩展上下文是否有效
-      if (!chrome.runtime?.id) {
-        reject(new Error('扩展上下文已失效，请刷新页面'));
-        return;
-      }
+    // 检查扩展上下文是否有效
+    if (!chrome.runtime?.id) {
+      console.error('Tidy: 扩展上下文无效，无法发送翻译请求');
+      throw new Error('扩展上下文已失效，请刷新页面');
+    }
 
-      try {
-        chrome.runtime.sendMessage({
-          action: 'translate',
-          text: text,
-          settings: settings
-        }, (response) => {
-          if (chrome.runtime.lastError) {
-            console.error('Runtime error:', chrome.runtime.lastError);
-            // 检查是否是上下文失效错误
-            if (chrome.runtime.lastError.message.includes('Extension context invalidated')) {
-              reject(new Error('扩展上下文已失效，请刷新页面重试'));
-            } else {
-              reject(new Error(chrome.runtime.lastError.message));
-            }
-            return;
-          }
-          
-          if (response && response.success) {
-            resolve(response.translation);
-          } else {
-            const errorMessage = response?.error || '翻译请求失败';
-            console.error('Translation error:', errorMessage);
-            reject(new Error(errorMessage));
-          }
-        });
-      } catch (error) {
-        console.error('发送消息时出错:', error);
-        reject(new Error('扩展通信失败，请刷新页面重试'));
+    // 根据模型调整超时时间
+    const getTimeoutForModel = (aiModel) => {
+      switch (aiModel) {
+        case 'qwen3':
+          return 60000; // Qwen3 给60秒超时时间
+        case 'claude-3':
+          return 45000; // Claude给45秒
+        case 'gemini-pro':
+          return 45000; // Gemini给45秒
+        default:
+          return 30000; // 其他模型30秒
       }
+    };
+
+    const timeoutMs = getTimeoutForModel(settings.aiModel);
+    
+    return new Promise((resolve, reject) => {
+      // 重试机制
+      let retryCount = 0;
+      const maxRetries = 2;
+      
+      const attemptTranslation = () => {
+        // 每次重试前都检查上下文
+        if (!chrome.runtime?.id) {
+          console.error('Tidy: 扩展上下文无效，无法发送翻译请求');
+          this.handleExtensionContextInvalidated();
+          reject(new Error('扩展上下文已失效，请刷新页面'));
+          return;
+        }
+
+        // 设置超时
+        const timeout = setTimeout(() => {
+          console.warn(`Tidy: 翻译请求超时 (${timeoutMs}ms)，模型: ${settings.aiModel}`);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Tidy: 尝试重试翻译 (${retryCount}/${maxRetries})`);
+            setTimeout(attemptTranslation, 1000); // 1秒后重试
+          } else {
+            reject(new Error(`翻译请求超时，已重试${maxRetries}次，请检查网络连接或稍后重试`));
+          }
+        }, timeoutMs);
+
+        try {
+          chrome.runtime.sendMessage({
+            action: 'translate',
+            text: text,
+            settings: settings
+          }, (response) => {
+            clearTimeout(timeout);
+            
+            // 检查运行时错误
+            if (chrome.runtime.lastError) {
+              console.error('Tidy: Runtime error:', chrome.runtime.lastError);
+              
+              // 检查是否是上下文失效错误
+              if (chrome.runtime.lastError.message.includes('Extension context invalidated') ||
+                  chrome.runtime.lastError.message.includes('receiving end does not exist')) {
+                console.error('Tidy: 检测到扩展上下文失效');
+                this.handleExtensionContextInvalidated();
+                reject(new Error('扩展上下文已失效，请刷新页面重试'));
+              } else if (retryCount < maxRetries) {
+                // 其他错误尝试重试
+                retryCount++;
+                console.log(`Tidy: 遇到错误，尝试重试 (${retryCount}/${maxRetries}): ${chrome.runtime.lastError.message}`);
+                setTimeout(attemptTranslation, 2000); // 2秒后重试
+              } else {
+                reject(new Error(chrome.runtime.lastError.message));
+              }
+              return;
+            }
+            
+            // 检查响应
+            if (response && response.success) {
+              if (response.translation && response.translation.trim()) {
+                resolve(response.translation);
+              } else {
+                console.warn('Tidy: 翻译返回空结果');
+                if (retryCount < maxRetries) {
+                  retryCount++;
+                  console.log(`Tidy: 翻译结果为空，尝试重试 (${retryCount}/${maxRetries})`);
+                  setTimeout(attemptTranslation, 1000);
+                } else {
+                  reject(new Error('翻译返回空结果'));
+                }
+              }
+            } else {
+              const errorMessage = response?.error || '翻译请求失败';
+              console.error('Tidy: Translation error:', errorMessage);
+              
+              // 如果是API相关错误且还有重试次数，则重试
+              if (retryCount < maxRetries && (
+                errorMessage.includes('timeout') ||
+                errorMessage.includes('network') ||
+                errorMessage.includes('连接') ||
+                errorMessage.includes('超时')
+              )) {
+                retryCount++;
+                console.log(`Tidy: 网络相关错误，尝试重试 (${retryCount}/${maxRetries}): ${errorMessage}`);
+                setTimeout(attemptTranslation, 3000); // 3秒后重试
+              } else {
+                reject(new Error(errorMessage));
+              }
+            }
+          });
+        } catch (error) {
+          clearTimeout(timeout);
+          console.error('Tidy: 发送消息时出错:', error);
+          
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`Tidy: 发送消息异常，尝试重试 (${retryCount}/${maxRetries}): ${error.message}`);
+            setTimeout(attemptTranslation, 2000);
+          } else {
+            reject(new Error('扩展通信失败，请刷新页面重试'));
+          }
+        }
+      };
+
+      // 开始首次尝试
+      attemptTranslation();
     });
   }
 
@@ -872,3 +1178,10 @@ class TranslationController {
 
 // 初始化翻译控制器
 const translationController = new TranslationController();
+
+// 页面卸载时清理资源
+window.addEventListener('beforeunload', () => {
+  if (translationController) {
+    translationController.cleanup();
+  }
+});

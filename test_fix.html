@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Context 修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .test-content {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        .log-output {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-error { color: #dc3545; }
+        .log-warning { color: #ffc107; }
+        .log-success { color: #28a745; }
+        .log-info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Extension Context 修复测试</h1>
+    <p><strong>测试目标：</strong>验证Extension context invalidated错误的修复效果，特别是针对Qwen3模型的翻译功能。</p>
+    
+    <div class="test-section">
+        <h2>🔍 扩展状态检查</h2>
+        <div id="extension-status" class="status info">检查中...</div>
+        <button onclick="checkExtensionStatus()">重新检查扩展状态</button>
+        <button onclick="testContextRecovery()">测试上下文恢复</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 翻译功能测试</h2>
+        <div class="test-content">
+            <p><strong>英文测试文本：</strong></p>
+            <p>Hello, world! This is a test paragraph for translation. The quick brown fox jumps over the lazy dog.</p>
+            
+            <p><strong>日语测试文本：</strong></p>
+            <p>こんにちは世界！これは翻訳のためのテスト段落です。すべてが正常に動作することを願っています。</p>
+            
+            <p><strong>韩语测试文本：</strong></p>
+            <p>안녕하세요 세계! 이것은 번역을 위한 테스트 단락입니다. 모든 것이 정상적으로 작동하기를 바랍니다.</p>
+        </div>
+        
+        <div>
+            <button onclick="testSingleTranslation()">测试单个翻译</button>
+            <button onclick="testBatchTranslation()">测试批量翻译</button>
+            <button onclick="testQwen3Translation()">测试Qwen3翻译</button>
+            <button onclick="testLongTextTranslation()">测试长文本翻译</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚨 错误处理测试</h2>
+        <div>
+            <button onclick="testTimeoutHandling()">测试超时处理</button>
+            <button onclick="testRetryMechanism()">测试重试机制</button>
+            <button onclick="testErrorRecovery()">测试错误恢复</button>
+            <button onclick="stressTest()">压力测试</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="test-results" class="status info">等待测试...</div>
+        <div id="statistics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">
+            <div class="status info">成功: <span id="success-count">0</span></div>
+            <div class="status warning">失败: <span id="failure-count">0</span></div>
+            <div class="status error">错误: <span id="error-count">0</span></div>
+            <div class="status success">总计: <span id="total-count">0</span></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 详细日志</h2>
+        <div id="log-output" class="log-output"></div>
+        <div>
+            <button onclick="clearLog()">清除日志</button>
+            <button onclick="exportLog()">导出日志</button>
+        </div>
+    </div>
+
+    <script>
+        // 测试统计
+        let testStats = {
+            success: 0,
+            failure: 0,
+            error: 0,
+            total: 0
+        };
+
+        // 日志功能
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('log-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+
+            // 更新统计
+            if (type === 'success') testStats.success++;
+            else if (type === 'warning') testStats.failure++;
+            else if (type === 'error') testStats.error++;
+            testStats.total++;
+            updateStatistics();
+        }
+
+        function updateStatistics() {
+            document.getElementById('success-count').textContent = testStats.success;
+            document.getElementById('failure-count').textContent = testStats.failure;
+            document.getElementById('error-count').textContent = testStats.error;
+            document.getElementById('total-count').textContent = testStats.total;
+        }
+
+        function clearLog() {
+            document.getElementById('log-output').innerHTML = '';
+            testStats = { success: 0, failure: 0, error: 0, total: 0 };
+            updateStatistics();
+        }
+
+        function exportLog() {
+            const logOutput = document.getElementById('log-output');
+            const logText = logOutput.innerText;
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `extension-test-log-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 检查扩展状态
+        function checkExtensionStatus() {
+            const statusDiv = document.getElementById('extension-status');
+            
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ 扩展上下文正常 - ID: ' + chrome.runtime.id;
+                    log('扩展上下文检查成功', 'success');
+                    return true;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ 扩展上下文无效';
+                    log('扩展上下文检查失败', 'error');
+                    return false;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 扩展上下文检查出错: ' + error.message;
+                log('扩展上下文检查异常: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 测试上下文恢复
+        async function testContextRecovery() {
+            log('开始测试上下文恢复机制...', 'info');
+            
+            // 模拟多次检查
+            for (let i = 0; i < 5; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                const isValid = checkExtensionStatus();
+                if (isValid) {
+                    log(`上下文检查 ${i + 1}/5: 正常`, 'success');
+                } else {
+                    log(`上下文检查 ${i + 1}/5: 异常`, 'error');
+                }
+            }
+        }
+
+        // 测试单个翻译
+        async function testSingleTranslation() {
+            log('开始测试单个翻译...', 'info');
+            
+            if (!checkExtensionStatus()) {
+                log('扩展上下文无效，跳过翻译测试', 'error');
+                return;
+            }
+
+            try {
+                const result = await sendTranslationRequest('Hello, world!', {
+                    aiModel: 'openai-gpt35',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                });
+                
+                if (result.success) {
+                    log('单个翻译测试成功: ' + result.translation, 'success');
+                } else {
+                    log('单个翻译测试失败: ' + result.error, 'warning');
+                }
+            } catch (error) {
+                log('单个翻译测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 测试Qwen3翻译
+        async function testQwen3Translation() {
+            log('开始测试Qwen3翻译（预期会因为无效API Key而失败，但应该有正确的错误处理）...', 'info');
+            
+            if (!checkExtensionStatus()) {
+                log('扩展上下文无效，跳过Qwen3翻译测试', 'error');
+                return;
+            }
+
+            try {
+                const result = await sendTranslationRequest('Hello, this is a test for Qwen3.', {
+                    aiModel: 'qwen3',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key-qwen3'
+                });
+                
+                if (result.success) {
+                    log('Qwen3翻译测试意外成功: ' + result.translation, 'success');
+                } else {
+                    log('Qwen3翻译测试如预期失败: ' + result.error, 'info');
+                }
+            } catch (error) {
+                log('Qwen3翻译测试异常: ' + error.message, 'warning');
+            }
+        }
+
+        // 测试批量翻译
+        async function testBatchTranslation() {
+            log('开始测试批量翻译...', 'info');
+            
+            const testTexts = [
+                'First test sentence.',
+                'Second test sentence.',
+                'Third test sentence.',
+                'Fourth test sentence.',
+                'Fifth test sentence.'
+            ];
+
+            for (let i = 0; i < testTexts.length; i++) {
+                if (!checkExtensionStatus()) {
+                    log('批量翻译过程中检测到扩展上下文失效', 'error');
+                    break;
+                }
+
+                try {
+                    const result = await sendTranslationRequest(testTexts[i], {
+                        aiModel: 'openai-gpt35',
+                        sourceLang: 'en',
+                        targetLang: 'zh',
+                        apiKey: 'test-key'
+                    });
+                    
+                    if (result.success) {
+                        log(`批量翻译 ${i + 1}/${testTexts.length} 成功`, 'success');
+                    } else {
+                        log(`批量翻译 ${i + 1}/${testTexts.length} 失败: ${result.error}`, 'warning');
+                    }
+                } catch (error) {
+                    log(`批量翻译 ${i + 1}/${testTexts.length} 异常: ${error.message}`, 'error');
+                }
+
+                // 短暂延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 测试长文本翻译
+        async function testLongTextTranslation() {
+            log('开始测试长文本翻译...', 'info');
+            
+            const longText = 'This is a very long text for testing translation functionality. '.repeat(50);
+            
+            try {
+                const result = await sendTranslationRequest(longText, {
+                    aiModel: 'qwen3',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                });
+                
+                if (result.success) {
+                    log('长文本翻译测试成功', 'success');
+                } else {
+                    log('长文本翻译测试失败: ' + result.error, 'warning');
+                }
+            } catch (error) {
+                log('长文本翻译测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 测试超时处理
+        async function testTimeoutHandling() {
+            log('开始测试超时处理...', 'info');
+            
+            try {
+                // 发送一个可能超时的请求
+                const result = await sendTranslationRequest('Test timeout handling', {
+                    aiModel: 'qwen3',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'invalid-key-for-timeout-test'
+                });
+                
+                log('超时处理测试结果: ' + (result.success ? '成功' : result.error), result.success ? 'success' : 'info');
+            } catch (error) {
+                log('超时处理测试异常: ' + error.message, 'warning');
+            }
+        }
+
+        // 测试重试机制
+        async function testRetryMechanism() {
+            log('开始测试重试机制...', 'info');
+            
+            // 快速发送多个请求来测试重试
+            const promises = [];
+            for (let i = 0; i < 3; i++) {
+                promises.push(sendTranslationRequest(`Retry test ${i + 1}`, {
+                    aiModel: 'openai-gpt35',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                }));
+            }
+
+            try {
+                const results = await Promise.allSettled(promises);
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled') {
+                        log(`重试测试 ${index + 1}: ${result.value.success ? '成功' : '失败'}`, result.value.success ? 'success' : 'warning');
+                    } else {
+                        log(`重试测试 ${index + 1}: 异常 - ${result.reason.message}`, 'error');
+                    }
+                });
+            } catch (error) {
+                log('重试机制测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 测试错误恢复
+        async function testErrorRecovery() {
+            log('开始测试错误恢复...', 'info');
+            
+            // 先发送一个预期失败的请求
+            try {
+                await sendTranslationRequest('Error recovery test', {
+                    aiModel: 'invalid-model',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'invalid-key'
+                });
+            } catch (error) {
+                log('预期错误发生: ' + error.message, 'info');
+            }
+
+            // 然后发送一个正常的请求，测试是否能恢复
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            try {
+                const result = await sendTranslationRequest('Recovery test', {
+                    aiModel: 'openai-gpt35',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                });
+                
+                log('错误恢复测试: ' + (result.success ? '成功恢复' : '恢复失败'), result.success ? 'success' : 'warning');
+            } catch (error) {
+                log('错误恢复测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 压力测试
+        async function stressTest() {
+            log('开始压力测试（10个并发请求）...', 'info');
+            
+            const promises = [];
+            for (let i = 0; i < 10; i++) {
+                promises.push(sendTranslationRequest(`Stress test ${i + 1}`, {
+                    aiModel: 'openai-gpt35',
+                    sourceLang: 'en',
+                    targetLang: 'zh',
+                    apiKey: 'test-key'
+                }));
+            }
+
+            try {
+                const results = await Promise.allSettled(promises);
+                let successCount = 0;
+                let failureCount = 0;
+                
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value.success) {
+                        successCount++;
+                    } else {
+                        failureCount++;
+                    }
+                });
+                
+                log(`压力测试完成: ${successCount}成功, ${failureCount}失败`, 'info');
+                
+                if (successCount > 0) {
+                    log('压力测试：扩展在并发请求下表现正常', 'success');
+                } else {
+                    log('压力测试：扩展在并发请求下出现问题', 'warning');
+                }
+            } catch (error) {
+                log('压力测试异常: ' + error.message, 'error');
+            }
+        }
+
+        // 发送翻译请求的辅助函数
+        function sendTranslationRequest(text, settings) {
+            return new Promise((resolve, reject) => {
+                if (!chrome.runtime?.id) {
+                    reject(new Error('Extension context invalid'));
+                    return;
+                }
+
+                const timeout = setTimeout(() => {
+                    reject(new Error('Request timeout'));
+                }, 10000);
+
+                chrome.runtime.sendMessage({
+                    action: 'translate',
+                    text: text,
+                    settings: settings
+                }, (response) => {
+                    clearTimeout(timeout);
+                    
+                    if (chrome.runtime.lastError) {
+                        reject(new Error(chrome.runtime.lastError.message));
+                    } else {
+                        resolve(response || { success: false, error: 'No response' });
+                    }
+                });
+            });
+        }
+
+        // 页面加载时检查扩展状态
+        window.addEventListener('load', () => {
+            log('测试页面加载完成', 'info');
+            checkExtensionStatus();
+            
+            // 每5秒自动检查一次扩展状态
+            setInterval(() => {
+                if (document.hasFocus()) {
+                    checkExtensionStatus();
+                }
+            }, 5000);
+        });
+
+        // 监听来自扩展的消息
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                log('收到扩展消息: ' + JSON.stringify(message), 'info');
+                sendResponse({ received: true });
+            });
+        }
+    </script>
+</body>
+</html>
