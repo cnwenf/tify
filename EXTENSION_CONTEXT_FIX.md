@@ -1,3 +1,58 @@
+# Cursor Rule: 网页分段并发翻译最佳实践
+
+参考 [immersive-translate/old-immersive-translate](https://github.com/immersive-translate/old-immersive-translate) 等优秀插件，网页翻译应遵循如下最佳实践：
+
+1. **分段提取内容**
+   - 只提取正文相关的段落（如 `<p>`, `<li>`, `<h1-6>`, `<div>` 等），而不是整个 `body`。
+   - 可用内容区选择器策略，过滤掉导航、脚注、广告等无关内容。
+   - 支持自定义选择器，适配特殊网站。
+
+2. **分段并发翻译**
+   - 将提取到的每个段落文本组成数组，按最大并发数（如 3~5）批量发送到 AI/翻译 API。
+   - 每个段落独立处理，翻译完成后直接渲染到页面对应位置。
+   - 推荐实现并发池（如 p-limit 或手写），避免 API 限流。
+
+3. **错误处理与重试**
+   - 某一段失败不影响其它段落，失败的可以重试或提示用户。
+
+4. **双语显示**
+   - 每个段落原文和译文并排或上下显示，样式可参考 immersive-translate 的“bilingual”模式。
+
+5. **性能与体验**
+   - 避免一次性发送整页内容，防止 API 超长报错和页面卡顿。
+   - 支持翻译进度提示，提升用户体验。
+
+> 伪代码示例：
+>
+> ```js
+> const elements = getTranslatableElements();
+> const maxConcurrency = 5;
+> let index = 0;
+>
+> async function processNextBatch() {
+>   const batch = [];
+>   for (let i = 0; i < maxConcurrency && index < elements.length; i++, index++) {
+>     batch.push(translateAndRender(elements[index]));
+>   }
+>   await Promise.all(batch);
+>   if (index < elements.length) {
+>     await processNextBatch();
+>   }
+> }
+>
+> async function translateAndRender(element) {
+>   const text = element.textContent.trim();
+>   const translation = await requestTranslation(text, settings);
+>   applyTranslation(element, text, translation, 'bilingual');
+> }
+>
+> processNextBatch();
+> ```
+
+---
+
+本规则适用于所有网页翻译相关开发，能极大提升翻译速度、稳定性和用户体验。
+
 # 扩展上下文错误修复说明
 
 ## 问题描述

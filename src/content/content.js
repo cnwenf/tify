@@ -184,7 +184,9 @@ class TranslationController {
         'aiModel',
         'sourceLang',
         'targetLang',
-        'translateMode'
+        'translateMode',
+        'apiKey',
+        'customEndpoint'
       ]);
 
       this.settings = {
@@ -192,7 +194,9 @@ class TranslationController {
         aiModel: result.aiModel || 'openai-gpt35',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',
-        translateMode: result.translateMode || 'bilingual'
+        translateMode: result.translateMode || 'bilingual',
+        apiKey: result.apiKey || '',
+        customEndpoint: result.customEndpoint || ''
       };
     } catch (error) {
       console.error('Tidy: 加载设置失败:', error);
@@ -331,14 +335,13 @@ class TranslationController {
   bindEvents() {
     // 绑定事件处理器
     this.boundKeydownHandler = (e) => {
-      // Alt + A: 切换翻译
-      if (e.altKey && e.key === 'a') {
+      // Option/Alt + A: 切换翻译（Mac/Win 双平台）
+      if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         this.toggleTranslation();
       }
-      
-      // Alt + W: 翻译整个页面
-      if (e.altKey && e.key === 'w') {
+      // Option/Alt + W: 翻译整个页面
+      if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'w') {
         e.preventDefault();
         this.translatePage();
       }
@@ -566,16 +569,22 @@ class TranslationController {
   // 翻译选中文本
   async translateSelection(text) {
     if (!text.trim()) return;
-
     try {
       this.showProgress('正在翻译选中内容...');
-
       const translation = await this.requestTranslation(text, this.settings);
-      
       if (translation) {
-        this.showTranslationPopup(text, translation);
+        // 直接在页面中插入原文+译文
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const span = document.createElement('span');
+          span.className = 'ai-translation-bilingual-inline';
+          span.style = 'background:rgba(255,255,0,0.15);white-space:pre-line;line-height:1.7;';
+          span.textContent = `${text}\n${translation}`;
+          range.deleteContents();
+          range.insertNode(span);
+        }
       }
-
     } catch (error) {
       console.error('翻译选中文本失败:', error);
       this.showNotification('翻译失败', 'error');
@@ -820,32 +829,12 @@ class TranslationController {
     element.setAttribute('data-ai-translated', 'true');
     element.setAttribute('data-original-text', originalText);
 
-    if (mode === 'bilingual') {
-      // 双语对照模式
-      const translationEl = document.createElement('div');
-      translationEl.className = 'ai-translation-bilingual';
-      translationEl.innerHTML = `
-        <div class="original-text">${originalText}</div>
-        <div class="translated-text">${translation}</div>
-      `;
-      
-      translationEl.style.cssText = `
-        border-left: 3px solid #4f46e5;
-        padding-left: 8px;
-        margin: 4px 0;
-        background: rgba(79, 70, 229, 0.05);
-        border-radius: 4px;
-      `;
-
-      element.innerHTML = '';
-      element.appendChild(translationEl);
-    } else {
-      // 替换模式
-      element.innerHTML = `<span class="ai-translation-replace" title="原文: ${originalText}">${translation}</span>`;
-    }
+    // 只用内联双语模式，原文+译文直接显示
+    const bilingualHtml = `<div class="ai-translation-bilingual-inline" style="white-space:pre-line;line-height:1.7;">${originalText}\n${translation}</div>`;
+    element.innerHTML = bilingualHtml;
 
     // 记录翻译
-    this.translatedElements.set(element, { originalText, translation, mode });
+    this.translatedElements.set(element, { originalText, translation, mode: 'bilingual-inline' });
   }
 
   // 清除翻译
@@ -868,184 +857,45 @@ class TranslationController {
     this.showNotification('翻译已清除', 'info');
   }
 
-  // 显示翻译弹窗
+  // 显示翻译弹窗（现在改为在选中内容下方插入浮层）
   showTranslationPopup(originalText, translation) {
+    // 先移除旧的
     this.hideTranslationPopup();
-
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    // 创建浮层
     const popup = document.createElement('div');
-    popup.id = 'ai-translator-popup';
-    popup.innerHTML = `
-      <div class="popup-header">
-        <span class="popup-title">AI 翻译结果</span>
-        <button class="popup-close">&times;</button>
-      </div>
-      <div class="popup-content">
-        <div class="popup-section">
-          <label>原文:</label>
-          <div class="popup-text">${originalText}</div>
-        </div>
-        <div class="popup-section">
-          <label>译文:</label>
-          <div class="popup-text translated">${translation}</div>
-        </div>
-      </div>
-      <div class="popup-actions">
-        <button class="popup-btn copy-btn">复制译文</button>
-        <button class="popup-btn close-btn">关闭</button>
-      </div>
-    `;
-
-    popup.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 500px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      z-index: 10002;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-
-    // 添加样式
-    const style = document.createElement('style');
-    style.textContent = `
-      #ai-translator-popup .popup-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        border-radius: 12px 12px 0 0;
-      }
-      
-      #ai-translator-popup .popup-title {
-        font-weight: 600;
-        font-size: 16px;
-      }
-      
-      #ai-translator-popup .popup-close {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: background 0.2s;
-      }
-      
-      #ai-translator-popup .popup-close:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-      
-      #ai-translator-popup .popup-content {
-        padding: 20px;
-      }
-      
-      #ai-translator-popup .popup-section {
-        margin-bottom: 16px;
-      }
-      
-      #ai-translator-popup .popup-section label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 8px;
-        color: #374151;
-        font-size: 14px;
-      }
-      
-      #ai-translator-popup .popup-text {
-        padding: 12px;
-        background: #f9fafb;
-        border-radius: 6px;
-        line-height: 1.6;
-        font-size: 14px;
-        color: #1f2937;
-        border: 1px solid #e5e7eb;
-      }
-      
-      #ai-translator-popup .popup-text.translated {
-        background: #f0f9ff;
-        border-color: #0ea5e9;
-      }
-      
-      #ai-translator-popup .popup-actions {
-        padding: 16px 20px;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-      }
-      
-      #ai-translator-popup .popup-btn {
-        padding: 8px 16px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        background: white;
-        color: #374151;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s;
-      }
-      
-      #ai-translator-popup .popup-btn:hover {
-        background: #f9fafb;
-      }
-      
-      #ai-translator-popup .copy-btn {
-        background: #4f46e5;
-        color: white;
-        border-color: #4f46e5;
-      }
-      
-      #ai-translator-popup .copy-btn:hover {
-        background: #4338ca;
-      }
-    `;
-    
-    document.head.appendChild(style);
-
-    // 事件绑定
-    popup.querySelector('.popup-close').addEventListener('click', () => {
-      this.hideTranslationPopup();
-    });
-
-    popup.querySelector('.close-btn').addEventListener('click', () => {
-      this.hideTranslationPopup();
-    });
-
-    popup.querySelector('.copy-btn').addEventListener('click', () => {
-      navigator.clipboard.writeText(translation).then(() => {
-        this.showNotification('译文已复制到剪贴板', 'success');
-      });
-    });
-
-    // 点击背景关闭
-    popup.addEventListener('click', (e) => {
-      if (e.target === popup) {
-        this.hideTranslationPopup();
-      }
-    });
-
+    popup.id = 'ai-translator-popup-inline';
+    popup.innerHTML = `<div style="font-size:15px;line-height:1.7;white-space:pre-line;padding:10px 16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);max-width:420px;min-width:180px;">
+      <div style='color:#666;margin-bottom:4px;'>${originalText}</div>
+      <div style='color:#222;font-weight:500;'>${translation}</div>
+    </div>`;
+    popup.style.position = 'fixed';
+    popup.style.left = (rect.left + window.scrollX) + 'px';
+    popup.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    popup.style.zIndex = 10010;
+    popup.style.pointerEvents = 'auto';
+    popup.style.transition = 'opacity 0.2s';
+    popup.style.opacity = '1';
+    // 点击浮层外自动消失
+    setTimeout(() => {
+      const handler = (e) => {
+        if (!popup.contains(e.target)) {
+          this.hideTranslationPopup();
+          document.removeEventListener('mousedown', handler);
+        }
+      };
+      document.addEventListener('mousedown', handler);
+    }, 0);
     document.body.appendChild(popup);
   }
 
-  // 隐藏翻译弹窗
+  // 隐藏翻译弹窗（支持新浮层）
   hideTranslationPopup() {
-    const popup = document.getElementById('ai-translator-popup');
-    if (popup) {
-      popup.remove();
-    }
+    const popup = document.getElementById('ai-translator-popup-inline') || document.getElementById('ai-translator-popup');
+    if (popup) popup.remove();
   }
 
   // 显示进度
