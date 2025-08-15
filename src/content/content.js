@@ -239,6 +239,10 @@ class TranslationController {
         this.showTranslationPopup(message.originalText, message.translation);
         sendResponse({ success: true });
         break;
+      case 'showNotification':
+        this.showNotification(message.message, message.type || 'info');
+        sendResponse({ success: true });
+        break;
       default:
         console.log('Tidy: 未知消息类型:', message.action);
         sendResponse({ success: false, error: 'Unknown action' });

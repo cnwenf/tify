@@ -102,6 +102,15 @@ class BackgroundService {
     try {
       const settings = await this.getSettings();
       
+      // 检查API密钥是否配置
+      if (!settings.apiKey) {
+        // 弹出设置页面，提示用户配置API密钥
+        chrome.tabs.create({
+          url: chrome.runtime.getURL('src/popup/popup.html')
+        });
+        return;
+      }
+      
       if (info.menuItemId === 'translate-selection' && info.selectionText) {
         // 翻译选中文本
         const translation = await this.translationService.translate(
@@ -123,6 +132,21 @@ class BackgroundService {
       }
     } catch (error) {
       console.error('Context menu handler error:', error);
+      // 如果是 Qwen3 相关错误，主动通知 content script 弹窗
+      if (error && error.message) {
+        if (tab && tab.id) {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'showNotification',
+            message: `模型访问失败：${error.message}`,
+            type: 'error'
+          }, (response) => {
+            if (chrome.runtime.lastError) {
+              // 静默处理，不再抛出异常
+              console.warn('Content script not available:', chrome.runtime.lastError.message);
+            }
+          });
+        }
+      }
     }
   }
 
