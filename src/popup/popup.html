@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tidy</title>
+  <title>Tidy - 世界最好的AI翻译插件</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -13,6 +13,7 @@
       <div class="logo">
         <img src="../assets/icon32.png" alt="Tidy" class="logo-icon">
         <h1>Tidy</h1>
+        <span class="version">v2.0</span>
       </div>
       <div class="status-indicator" id="statusIndicator">
         <span class="status-dot"></span>
@@ -23,25 +24,31 @@
     <!-- 主要控制面板 -->
     <main class="popup-main">
       <!-- 翻译开关 -->
-      <div class="control-section">
+      <div class="control-section highlight">
         <div class="toggle-container">
           <label class="toggle-switch">
             <input type="checkbox" id="translateToggle">
             <span class="slider"></span>
           </label>
-          <span class="toggle-label">启用翻译</span>
+          <div class="toggle-info">
+            <span class="toggle-label">启用AI翻译</span>
+            <span class="toggle-description">智能分段并发翻译</span>
+          </div>
         </div>
       </div>
 
       <!-- AI模型选择 -->
       <div class="control-section">
-        <label for="aiModel" class="section-label">AI 模型</label>
+        <label for="aiModel" class="section-label">
+          <span class="label-icon">🤖</span>
+          AI 模型
+        </label>
         <select id="aiModel" class="model-select">
-          <option value="openai-gpt4">OpenAI GPT-4</option>
-          <option value="openai-gpt35">OpenAI GPT-3.5</option>
-          <option value="claude-3">Claude 3</option>
-          <option value="gemini-pro">Gemini Pro</option>
-          <option value="qwen3">阿里云百炼 Qwen3</option>
+          <option value="openai-gpt4">OpenAI GPT-4 (最强理解)</option>
+          <option value="openai-gpt35">OpenAI GPT-3.5 (快速稳定)</option>
+          <option value="claude-3">Claude 3 (创意表达)</option>
+          <option value="gemini-pro">Gemini Pro (多语言)</option>
+          <option value="qwen3">阿里云百炼 Qwen3 (中文优化)</option>
           <option value="custom">自定义模型</option>
         </select>
       </div>
@@ -50,46 +57,117 @@
       <div class="control-section">
         <div class="language-settings">
           <div class="language-pair">
-            <label for="sourceLang" class="section-label">源语言</label>
+            <label for="sourceLang" class="section-label">
+              <span class="label-icon">📄</span>
+              源语言
+            </label>
             <select id="sourceLang" class="lang-select">
-              <option value="auto">自动检测</option>
-              <option value="en">English</option>
-              <option value="zh">中文</option>
-              <option value="ja">日本語</option>
-              <option value="ko">한국어</option>
-              <option value="fr">Français</option>
-              <option value="de">Deutsch</option>
-              <option value="es">Español</option>
+              <option value="auto">🌐 自动检测</option>
+              <option value="en">🇺🇸 English</option>
+              <option value="zh">🇨🇳 中文</option>
+              <option value="ja">🇯🇵 日本語</option>
+              <option value="ko">🇰🇷 한국어</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="ru">🇷🇺 Русский</option>
+              <option value="it">🇮🇹 Italiano</option>
+              <option value="pt">🇵🇹 Português</option>
+              <option value="ar">🇸🇦 العربية</option>
             </select>
           </div>
-          <div class="language-arrow">→</div>
+          <div class="language-arrow">
+            <span class="arrow-icon">→</span>
+          </div>
           <div class="language-pair">
-            <label for="targetLang" class="section-label">目标语言</label>
+            <label for="targetLang" class="section-label">
+              <span class="label-icon">🎯</span>
+              目标语言
+            </label>
             <select id="targetLang" class="lang-select">
-              <option value="zh">中文</option>
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
-              <option value="ko">한국어</option>
-              <option value="fr">Français</option>
-              <option value="de">Deutsch</option>
-              <option value="es">Español</option>
+              <option value="zh">🇨🇳 中文</option>
+              <option value="en">🇺🇸 English</option>
+              <option value="ja">🇯🇵 日本語</option>
+              <option value="ko">🇰🇷 한국어</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="ru">🇷🇺 Русский</option>
+              <option value="it">🇮🇹 Italiano</option>
+              <option value="pt">🇵🇹 Português</option>
+              <option value="ar">🇸🇦 العربية</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- 翻译模式 -->
+      <!-- 翻译模式 - 新增immersive风格 -->
       <div class="control-section">
-        <label class="section-label">翻译模式</label>
+        <label class="section-label">
+          <span class="label-icon">✨</span>
+          翻译显示模式
+        </label>
         <div class="mode-options">
-          <label class="radio-option">
-            <input type="radio" name="translateMode" value="bilingual" checked>
-            <span class="radio-text">双语对照</span>
+          <label class="mode-card">
+            <input type="radio" name="translateMode" value="immersive-bilingual" checked>
+            <div class="mode-content">
+              <div class="mode-title">沉浸式双语</div>
+              <div class="mode-description">immersive-translate风格，原文+译文，完美阅读体验</div>
+              <div class="mode-preview">
+                <div class="preview-original">Original Text</div>
+                <div class="preview-translated">翻译文本</div>
+              </div>
+            </div>
           </label>
-          <label class="radio-option">
+          
+          <label class="mode-card">
+            <input type="radio" name="translateMode" value="side-by-side">
+            <div class="mode-content">
+              <div class="mode-title">并排对照</div>
+              <div class="mode-description">左右并排显示，对比学习最佳</div>
+              <div class="mode-preview side-by-side">
+                <div class="preview-left">Original</div>
+                <div class="preview-right">翻译</div>
+              </div>
+            </div>
+          </label>
+          
+          <label class="mode-card">
             <input type="radio" name="translateMode" value="replace">
-            <span class="radio-text">替换原文</span>
+            <div class="mode-content">
+              <div class="mode-title">替换原文</div>
+              <div class="mode-description">直接替换，鼠标悬停显示原文</div>
+              <div class="mode-preview replace">
+                <div class="preview-replaced">翻译文本</div>
+              </div>
+            </div>
           </label>
+        </div>
+      </div>
+
+      <!-- 翻译设置 -->
+      <div class="control-section">
+        <label class="section-label">
+          <span class="label-icon">⚡</span>
+          翻译设置
+        </label>
+        <div class="setting-group">
+          <div class="setting-item">
+            <label for="concurrencyLimit" class="setting-label">并发数量</label>
+            <select id="concurrencyLimit" class="setting-select">
+              <option value="3">3 (保守)</option>
+              <option value="5" selected>5 (推荐)</option>
+              <option value="8">8 (快速)</option>
+              <option value="10">10 (极速)</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label class="setting-checkbox">
+              <input type="checkbox" id="autoTranslate">
+              <span class="checkmark"></span>
+              页面加载时自动翻译
+            </label>
+          </div>
         </div>
       </div>
 
@@ -98,11 +176,13 @@
         <div class="quick-actions">
           <button id="translatePageBtn" class="action-btn primary">
             <span class="btn-icon">🌐</span>
-            翻译当前页面
+            <span class="btn-text">翻译当前页面</span>
+            <span class="btn-shortcut">Alt+W</span>
           </button>
           <button id="clearTranslationBtn" class="action-btn secondary">
             <span class="btn-icon">🗑️</span>
-            清除翻译
+            <span class="btn-text">清除翻译</span>
+            <span class="btn-shortcut">Alt+C</span>
           </button>
         </div>
       </div>
@@ -112,19 +192,33 @@
         <details class="settings-details">
           <summary class="settings-summary">
             <span class="settings-icon">⚙️</span>
-            API 设置
+            API 设置与配置
+            <span class="expand-arrow">▼</span>
           </summary>
           <div class="settings-content">
             <div class="api-config">
-              <label for="apiKey" class="section-label">API Key</label>
+              <label for="apiKey" class="section-label">
+                <span class="label-icon">🔑</span>
+                API Key
+              </label>
               <div class="input-group">
-                <input type="password" id="apiKey" class="api-input" placeholder="请输入API密钥">
-                <button id="testApiBtn" class="test-btn">测试</button>
+                <input type="password" id="apiKey" class="api-input" placeholder="请输入您的API密钥">
+                <button id="toggleApiKey" class="toggle-password-btn" title="显示/隐藏密钥">👁️</button>
+                <button id="testApiBtn" class="test-btn">测试连接</button>
+              </div>
+              <div class="api-help">
+                <small>支持 OpenAI、Claude、Gemini、阿里云百炼等多种API</small>
               </div>
             </div>
             <div class="api-config">
-              <label for="customEndpoint" class="section-label">自定义端点 (可选)</label>
-              <input type="url" id="customEndpoint" class="api-input" placeholder="https://api.example.com">
+              <label for="customEndpoint" class="section-label">
+                <span class="label-icon">🔗</span>
+                自定义端点 (可选)
+              </label>
+              <input type="url" id="customEndpoint" class="api-input" placeholder="https://api.example.com/v1/chat/completions">
+              <div class="api-help">
+                <small>用于代理服务或私有部署</small>
+              </div>
             </div>
           </div>
         </details>
@@ -134,13 +228,27 @@
     <!-- 底部信息 -->
     <footer class="popup-footer">
       <div class="usage-stats">
+        <span class="stat-icon">📊</span>
         <span id="usageCount">今日翻译: 0 次</span>
       </div>
       <div class="footer-links">
-        <a href="#" id="settingsLink">设置</a>
-        <a href="#" id="helpLink">帮助</a>
+        <a href="#" id="settingsLink" title="高级设置">⚙️</a>
+        <a href="#" id="helpLink" title="使用帮助">❓</a>
+        <a href="#" id="feedbackLink" title="意见反馈">💌</a>
       </div>
     </footer>
+
+    <!-- 性能指标显示 -->
+    <div class="performance-info" id="performanceInfo" style="display: none;">
+      <div class="perf-item">
+        <span class="perf-label">翻译速度:</span>
+        <span class="perf-value" id="translationSpeed">--</span>
+      </div>
+      <div class="perf-item">
+        <span class="perf-label">成功率:</span>
+        <span class="perf-value" id="successRate">--</span>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

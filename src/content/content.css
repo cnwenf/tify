@@ -1,6 +1,48 @@
 /* content.css - 内容脚本样式 */
 
-/* 双语对照翻译样式 */
+/* 沉浸式双语翻译样式 - 参考immersive-translate设计 */
+.ai-translation-immersive {
+  border-left: 3px solid #4f46e5;
+  padding-left: 12px;
+  margin: 6px 0;
+  background: linear-gradient(120deg, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.03) 100%);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  line-height: 1.6;
+  position: relative;
+}
+
+.ai-translation-immersive:hover {
+  background: linear-gradient(120deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
+  border-left-color: #7c3aed;
+  transform: translateX(2px);
+}
+
+.ai-translation-immersive .original-text {
+  color: #6b7280;
+  font-size: 0.92em;
+  line-height: 1.5;
+  margin-bottom: 4px;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.ai-translation-immersive .translated-text {
+  color: #1f2937;
+  font-weight: 500;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(79, 70, 229, 0.1);
+  position: relative;
+}
+
+.ai-translation-immersive:hover .original-text {
+  opacity: 1;
+}
+
+/* 传统双语对照翻译样式 */
 .ai-translation-bilingual {
   border-left: 3px solid #4f46e5;
   padding-left: 12px;
@@ -36,21 +78,78 @@
 /* 替换模式翻译样式 */
 .ai-translation-replace {
   background: linear-gradient(120deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
-  padding: 2px 4px;
-  border-radius: 3px;
-  border-bottom: 2px solid rgba(79, 70, 229, 0.3);
+  padding: 3px 6px;
+  border-radius: 4px;
+  border-bottom: 2px dotted #4f46e5;
   cursor: help;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .ai-translation-replace:hover {
   background: linear-gradient(120deg, rgba(79, 70, 229, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
-  border-bottom-color: rgba(79, 70, 229, 0.5);
+  border-bottom-color: rgba(79, 70, 229, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
+/* 并排显示模式 */
+.ai-translation-side-by-side {
+  display: flex;
+  gap: 12px;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 6px 0;
+  transition: all 0.3s ease;
+}
+
+.ai-translation-side-by-side:hover {
+  border-color: rgba(79, 70, 229, 0.4);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+.ai-translation-side-by-side .original-side {
+  flex: 1;
+  padding: 12px;
+  background: rgba(79, 70, 229, 0.05);
+  color: #4b5563;
+  font-size: 0.95em;
+  border-right: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+.ai-translation-side-by-side .translated-side {
+  flex: 1;
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.05);
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* 选择翻译样式 */
+.ai-translation-selection {
+  position: relative;
+  z-index: 1000;
+}
+
+.ai-translation-selection .original-text {
+  display: block;
+  color: #6b7280;
+  font-size: 0.9em;
+  margin-bottom: 2px;
+  opacity: 0.9;
+}
+
+.ai-translation-selection .translated-text {
+  display: block;
+  color: #1f2937;
+  font-weight: 500;
 }
 
 /* 悬浮按钮样式 */
 #ai-translator-float-btn {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  backdrop-filter: blur(10px);
 }
 
 #ai-translator-float-btn .float-btn-tooltip {
@@ -60,25 +159,40 @@
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
   font-size: 12px;
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
   pointer-events: none;
+  backdrop-filter: blur(8px);
 }
 
 #ai-translator-float-btn:hover .float-btn-tooltip {
   opacity: 1;
   visibility: visible;
+  transform: translateY(-50%) translateX(-4px);
 }
 
 /* 选择翻译按钮样式 */
 #ai-translator-selection-btn {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   user-select: none;
+  backdrop-filter: blur(8px);
+  animation: slideInUp 0.2s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* 进度指示器样式 */
@@ -86,6 +200,18 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.8);
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 #ai-translator-progress .progress-content {
@@ -94,11 +220,44 @@
   gap: 12px;
 }
 
+#ai-translator-progress .progress-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #4f46e5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* 通知样式 */
 .ai-translator-notification {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideInRight 0.3s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 翻译弹窗样式 */
+#ai-translator-popup-inline {
+  animation: fadeInUp 0.3s ease-out;
+  z-index: 10010;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 翻译弹窗遮罩 */
@@ -117,9 +276,9 @@
 /* 响应式调整 */
 @media (max-width: 768px) {
   #ai-translator-float-btn {
-    right: 10px;
-    width: 45px;
-    height: 45px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
     font-size: 18px;
   }
   
@@ -127,29 +286,48 @@
     display: none;
   }
   
-  #ai-translator-popup {
+  #ai-translator-popup-inline {
     width: 95% !important;
     max-width: none !important;
+    left: 2.5% !important;
   }
   
+  .ai-translation-immersive,
   .ai-translation-bilingual {
-    padding-left: 8px;
-    margin: 6px 0;
+    padding-left: 10px;
+    margin: 5px 0;
   }
   
+  .ai-translation-side-by-side {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .ai-translation-side-by-side .original-side {
+    border-right: none;
+    border-bottom: 1px solid rgba(79, 70, 229, 0.1);
+    padding: 10px;
+  }
+  
+  .ai-translation-side-by-side .translated-side {
+    padding: 10px;
+  }
+  
+  .ai-translation-immersive .original-text,
   .ai-translation-bilingual .original-text {
     font-size: 0.9em;
   }
   
+  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
-    padding: 4px 6px;
+    padding: 5px 6px;
   }
 }
 
 @media (max-width: 480px) {
   #ai-translator-selection-btn {
     width: 50px;
-    height: 26px;
+    height: 28px;
     font-size: 11px;
   }
   
@@ -157,12 +335,19 @@
     right: 10px;
     top: 10px;
     padding: 12px 16px;
+    min-width: 240px;
   }
   
   .ai-translator-notification {
     right: 10px;
     top: 10px;
     max-width: calc(100vw - 20px);
+  }
+  
+  .ai-translation-immersive,
+  .ai-translation-bilingual {
+    padding-left: 8px;
+    margin: 4px 0;
   }
 }
 
@@ -172,32 +357,46 @@
   #ai-translator-selection-btn,
   #ai-translator-progress,
   .ai-translator-notification,
-  #ai-translator-popup {
+  #ai-translator-popup-inline {
     display: none !important;
   }
   
+  .ai-translation-immersive,
   .ai-translation-bilingual {
     background: transparent !important;
     border-left: 2px solid #666 !important;
   }
   
+  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     background: #f5f5f5 !important;
     border: 1px solid #ddd !important;
+  }
+  
+  .ai-translation-side-by-side {
+    border: 1px solid #ddd !important;
+  }
+  
+  .ai-translation-side-by-side .original-side,
+  .ai-translation-side-by-side .translated-side {
+    background: transparent !important;
   }
 }
 
 /* 深色模式支持 */
 @media (prefers-color-scheme: dark) {
+  .ai-translation-immersive,
   .ai-translation-bilingual {
-    background: rgba(79, 70, 229, 0.1);
+    background: linear-gradient(120deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
     border-left-color: #8b5cf6;
   }
   
+  .ai-translation-immersive .original-text,
   .ai-translation-bilingual .original-text {
     color: #9ca3af;
   }
   
+  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     color: #f3f4f6;
     background: rgba(31, 41, 55, 0.8);
@@ -213,15 +412,42 @@
     background: linear-gradient(120deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
     border-bottom-color: rgba(139, 92, 246, 0.6);
   }
+  
+  .ai-translation-side-by-side {
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  
+  .ai-translation-side-by-side .original-side {
+    background: rgba(139, 92, 246, 0.08);
+    color: #d1d5db;
+    border-right-color: rgba(139, 92, 246, 0.2);
+  }
+  
+  .ai-translation-side-by-side .translated-side {
+    background: rgba(16, 185, 129, 0.08);
+    color: #f3f4f6;
+  }
+  
+  #ai-translator-popup-inline div {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f3f4f6 !important;
+  }
+  
+  #ai-translator-popup-inline div div:first-child {
+    color: #9ca3af !important;
+  }
 }
 
 /* 高对比度模式支持 */
 @media (prefers-contrast: high) {
+  .ai-translation-immersive,
   .ai-translation-bilingual {
     border-left-width: 4px;
     border-left-color: #000;
   }
   
+  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     border: 2px solid #000;
     background: #fff;
@@ -233,15 +459,28 @@
     border-bottom: 3px solid #000;
     color: #000;
   }
+  
+  .ai-translation-side-by-side {
+    border: 2px solid #000;
+  }
+  
+  .ai-translation-side-by-side .original-side,
+  .ai-translation-side-by-side .translated-side {
+    color: #000;
+    background: #fff;
+  }
 }
 
 /* 减少动画模式支持 */
 @media (prefers-reduced-motion: reduce) {
+  .ai-translation-immersive,
   .ai-translation-bilingual,
   .ai-translation-replace,
+  .ai-translation-side-by-side,
   #ai-translator-float-btn,
   #ai-translator-selection-btn,
-  .ai-translator-notification {
+  .ai-translator-notification,
+  #ai-translator-popup-inline {
     transition: none !important;
     animation: none !important;
   }
@@ -250,9 +489,17 @@
     animation: none !important;
     border-top-color: #4f46e5;
   }
+  
+  .ai-translation-immersive:hover,
+  .ai-translation-bilingual:hover,
+  .ai-translation-replace:hover {
+    transform: none !important;
+  }
 }
 
 /* 文本选择样式优化 */
+.ai-translation-immersive .original-text::selection,
+.ai-translation-immersive .translated-text::selection,
 .ai-translation-bilingual .original-text::selection,
 .ai-translation-bilingual .translated-text::selection {
   background: rgba(79, 70, 229, 0.3);
@@ -261,6 +508,12 @@
 
 .ai-translation-replace::selection {
   background: rgba(79, 70, 229, 0.4);
+  color: inherit;
+}
+
+.ai-translation-side-by-side .original-side::selection,
+.ai-translation-side-by-side .translated-side::selection {
+  background: rgba(79, 70, 229, 0.25);
   color: inherit;
 }
 
@@ -273,4 +526,55 @@
 #ai-translator-selection-btn:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
+}
+
+/* 翻译效果动画 */
+.ai-translation-immersive,
+.ai-translation-bilingual,
+.ai-translation-side-by-side {
+  animation: translateIn 0.5s ease-out;
+}
+
+@keyframes translateIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 高级视觉效果 */
+.ai-translation-immersive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.ai-translation-immersive:hover::before {
+  width: 4px;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
+}
+
+/* 翻译类型标识 */
+.ai-translation-immersive .translated-text::after {
+  content: '🌐';
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  font-size: 12px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.ai-translation-immersive:hover .translated-text::after {
+  opacity: 0.9;
 }
