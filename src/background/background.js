@@ -73,8 +73,14 @@ class BackgroundService {
               errorMessage = 'API密钥无效或已过期，请检查配置';
             } else if (error.message.includes('API error: 429')) {
               errorMessage = 'API调用频率超限，请稍后重试';
+            } else if (error.message.includes('Ollama API 访问被拒绝 (403)')) {
+              // Ollama CORS 错误，保持原始详细错误信息
+              errorMessage = error.message;
             } else if (error.message.includes('API error: 403')) {
               errorMessage = 'API访问被拒绝，请检查权限和余额';
+            } else if (error.message.includes('无法连接到 Ollama 服务')) {
+              // Ollama 连接错误，保持原始详细错误信息
+              errorMessage = error.message;
             } else if (error.message.includes('network') || error.message.includes('fetch')) {
               errorMessage = '网络连接失败，请检查网络连接';
             }
@@ -263,6 +269,7 @@ class BackgroundService {
       translateMode: 'bilingual',
       apiKey: '',
       customEndpoint: '',
+      ollamaModel: '',
       usageCount: 0,
       installDate: Date.now()
     };
@@ -281,6 +288,7 @@ class BackgroundService {
         'translateMode',
         'apiKey',
         'customEndpoint',
+        'ollamaModel',
         'usageCount'
       ]);
 
@@ -292,6 +300,7 @@ class BackgroundService {
         translateMode: result.translateMode || 'bilingual',
         apiKey: result.apiKey || '',
         customEndpoint: result.customEndpoint || '',
+        ollamaModel: result.ollamaModel || '',
         usageCount: result.usageCount || 0
       };
     } catch (error) {
@@ -654,40 +663,72 @@ ${text}`;
 
   // 使用Ollama翻译
   async translateWithOllama(text, sourceLang, targetLang, settings) {
-    const endpoint = this.apiEndpoints['ollama'];
+    const endpoint = settings.customEndpoint || this.apiEndpoints['ollama'];
     const model = settings.ollamaModel || 'llama2';
 
     const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
 
 ${text}`;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: prompt,
-        stream: false,
-        options: {
-          temperature: 0.3,
-          top_p: 0.9
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'Chrome-Extension-Translator/1.0'
+        },
+        body: JSON.stringify({
+          model: model,
+          prompt: prompt,
+          stream: false,
+          options: {
+            temperature: 0.3,
+            top_p: 0.9
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ollama API 错误响应:', errorText);
+        
+        if (response.status === 403) {
+          throw new Error(`Ollama API 访问被拒绝 (403)。这通常是由于CORS跨域限制导致的。请设置环境变量 OLLAMA_ORIGINS 来允许浏览器扩展访问：
+          
+Windows: set OLLAMA_ORIGINS=*
+Linux/Mac: export OLLAMA_ORIGINS=*
+然后重启 Ollama 服务：ollama serve
+
+详细信息: ${errorText}`);
+        } else if (response.status === 404) {
+          throw new Error(`Ollama 服务未找到 (404)。请确保：
+1. Ollama 服务正在运行 (ollama serve)
+2. 模型 "${model}" 已安装 (ollama pull ${model})
+3. 服务地址正确: ${endpoint}`);
+        } else {
+          throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
         }
-      })
-    });
+      }
 
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
-    }
+      const data = await response.json();
+      
+      if (data && data.response) {
+        return data.response.trim();
+      }
+      
+      throw new Error('Ollama返回无效响应格式');
+    } catch (error) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error(`无法连接到 Ollama 服务。请检查：
+1. Ollama 服务是否正在运行 (ollama serve)
+2. 服务地址是否正确: ${endpoint}
+3. 防火墙是否阻止了连接
 
-    const data = await response.json();
-    
-    if (data && data.response) {
-      return data.response.trim();
+原始错误: ${error.message}`);
+      }
+      throw error;
     }
-    
-    throw new Error('Ollama返回无效响应');
   }
 
   // 使用自定义端点翻译
@@ -724,7 +765,11 @@ ${text}`;
       const translation = await this.translate(testText, settings);
       
       if (translation && translation !== testText) {
-        return { success: true, message: 'API连接成功' };
+        let successMessage = 'API连接成功';
+        if (settings.aiModel === 'ollama') {
+          successMessage = `Ollama API连接成功，模型: ${settings.ollamaModel || 'llama2'}`;
+        }
+        return { success: true, message: successMessage };
       } else {
         return { success: false, error: 'API返回无效响应' };
       }
