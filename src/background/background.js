@@ -148,8 +148,10 @@ class BackgroundService {
     try {
       const settings = await this.getSettings();
       
-      // 检查API密钥是否配置
-      if (!settings.apiKey) {
+      // 检查API密钥是否配置 (Microsoft Translator 和 Ollama 不需要)
+      if (!settings.apiKey && 
+          settings.aiModel !== 'microsoft-translator' && 
+          settings.aiModel !== 'ollama') {
         // 弹出设置页面，提示用户配置API密钥
         chrome.tabs.create({
           url: chrome.runtime.getURL('src/popup/popup.html')
@@ -313,7 +315,7 @@ class BackgroundService {
 class TranslationService {
   constructor() {
     this.apiEndpoints = {
-      'microsoft-translator': 'https://api.cognitive.microsofttranslator.com/translate',
+      'microsoft-translator': 'https://api.mymemory.translated.net/get',
       'ollama': 'http://localhost:11434/api/generate',
       'openai-gpt4': 'https://api.openai.com/v1/chat/completions',
       'openai-gpt35': 'https://api.openai.com/v1/chat/completions',
@@ -329,7 +331,10 @@ class TranslationService {
       throw new Error('翻译文本不能为空');
     }
 
-    if (!settings.apiKey) {
+    // Microsoft Translator 和 Ollama 不需要API密钥
+    if (!settings.apiKey && 
+        settings.aiModel !== 'microsoft-translator' && 
+        settings.aiModel !== 'ollama') {
       throw new Error('请先配置API密钥');
     }
 
@@ -598,14 +603,15 @@ ${text}`;
     throw new Error(`Qwen3 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
   }
 
-  // 使用微软翻译
+  // 使用微软翻译 (免费版本，使用MyMemory API)
   async translateWithMicrosoft(text, sourceLang, targetLang, settings) {
-    const endpoint = settings.customEndpoint || this.apiEndpoints['microsoft-translator'];
+    // 使用免费的MyMemory翻译API作为微软翻译的替代
+    const endpoint = 'https://api.mymemory.translated.net/get';
     
-    // 微软翻译的语言代码映射
+    // 语言代码映射
     const langMap = {
-      'auto': '', // 微软翻译自动检测不需要指定源语言
-      'zh': 'zh-Hans',
+      'auto': '', 
+      'zh': 'zh-CN',
       'en': 'en',
       'ja': 'ja',
       'ko': 'ko',
@@ -618,41 +624,32 @@ ${text}`;
       'ar': 'ar'
     };
 
-    const fromLang = langMap[sourceLang] || sourceLang;
-    const toLang = langMap[targetLang] || targetLang;
+    const fromLang = langMap[sourceLang] || 'en';
+    const toLang = langMap[targetLang] || 'zh-CN';
 
     const params = new URLSearchParams({
-      'api-version': '3.0',
-      'to': toLang
+      'q': text,
+      'langpair': fromLang === '' ? `${toLang}` : `${fromLang}|${toLang}`
     });
 
-    if (fromLang && fromLang !== '') {
-      params.append('from', fromLang);
-    }
-
     const response = await fetch(`${endpoint}?${params}`, {
-      method: 'POST',
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Ocp-Apim-Subscription-Key': settings.apiKey,
-        'Ocp-Apim-Subscription-Region': settings.region || 'global'
-      },
-      body: JSON.stringify([{
-        'text': text
-      }])
+        'Content-Type': 'application/json'
+      }
     });
 
     if (!response.ok) {
-      throw new Error(`Microsoft Translator API error: ${response.status}`);
+      throw new Error(`Translation API error: ${response.status}`);
     }
 
     const data = await response.json();
     
-    if (data && data[0] && data[0].translations && data[0].translations[0]) {
-      return data[0].translations[0].text;
+    if (data && data.responseData && data.responseData.translatedText) {
+      return data.responseData.translatedText;
     }
     
-    throw new Error('微软翻译返回无效响应');
+    throw new Error('翻译服务返回无效响应');
   }
 
   // 使用Ollama翻译
