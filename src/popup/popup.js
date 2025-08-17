@@ -30,6 +30,9 @@ class PopupController {
       ollamaModelSection: document.getElementById('ollamaModelSection'),
       refreshOllamaModels: document.getElementById('refreshOllamaModels'),
       modelInfo: document.getElementById('modelInfo'),
+      apiKeySection: document.getElementById('apiKeySection'),
+      apiKeyHelp: document.getElementById('apiKeyHelp'),
+      customEndpointSection: document.getElementById('customEndpointSection'),
       sourceLang: document.getElementById('sourceLang'),
       targetLang: document.getElementById('targetLang'),
       translateMode: document.getElementsByName('translateMode'),
@@ -538,12 +541,39 @@ class PopupController {
   // 处理模型选择
   handleModelSelection(modelValue) {
     const ollamaSection = this.elements.ollamaModelSection;
+    const apiKeySection = this.elements.apiKeySection;
+    const customEndpointSection = this.elements.customEndpointSection;
+    const apiKeyHelp = this.elements.apiKeyHelp;
     
+    // 定义需要API Key的服务
+    const servicesNeedingApiKey = ['openai-gpt4', 'openai-gpt35', 'claude-3', 'gemini-pro', 'qwen3', 'custom'];
+    
+    // 根据选择的服务显示/隐藏相应的配置
     if (modelValue === 'ollama') {
       ollamaSection.style.display = 'block';
+      apiKeySection.style.display = 'none';
+      customEndpointSection.style.display = 'none';
       this.loadOllamaModels();
-    } else {
+    } else if (servicesNeedingApiKey.includes(modelValue)) {
       ollamaSection.style.display = 'none';
+      apiKeySection.style.display = 'block';
+      customEndpointSection.style.display = 'block';
+      
+      // 根据服务类型设置API Key帮助文本
+      const helpTexts = {
+        'openai-gpt4': '请输入 OpenAI API Key，支持 GPT-4 模型',
+        'openai-gpt35': '请输入 OpenAI API Key，支持 GPT-3.5-turbo 模型',
+        'claude-3': '请输入 Anthropic API Key，支持 Claude-3 模型',
+        'gemini-pro': '请输入 Google AI API Key，支持 Gemini Pro 模型',
+        'qwen3': '请输入阿里云百炼 API Key，支持通义千问模型',
+        'custom': '请输入自定义服务的 API Key'
+      };
+      apiKeyHelp.textContent = helpTexts[modelValue] || '请输入对应服务的API密钥';
+    } else {
+      // microsoft-translator 等不需要API Key的服务
+      ollamaSection.style.display = 'none';
+      apiKeySection.style.display = 'none';
+      customEndpointSection.style.display = 'none';
     }
 
     // 显示模型信息
