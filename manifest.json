@@ -43,21 +43,22 @@
   "commands": {
     "translate-page": {
       "suggested_key": {
-        "default": "Ctrl+W",
-        "mac": "Ctrl+W"
+        "default": "Alt+T",
+        "mac": "Alt+T"
       },
       "description": "翻译当前页面"
     },
     "toggle-translation": {
       "suggested_key": {
-        "default": "Ctrl+A"
+        "default": "Alt+S",
+        "mac": "Alt+S"
       },
       "description": "切换翻译状态"
     },
     "clear-translation": {
       "suggested_key": {
-        "default": "Ctrl+C",
-        "mac": "Ctrl+C"
+        "default": "Alt+R",
+        "mac": "Alt+R"
       },
       "description": "清除翻译"
     }
