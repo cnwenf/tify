@@ -549,7 +549,10 @@ class TranslationController {
       'nav', 'header', 'footer', '.navbar', '.menu', '.sidebar',
       '.comment-form', '.search', '.pagination', '.breadcrumb',
       '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
-      '[aria-hidden="true"]', '.sr-only', '.visually-hidden'
+      '[aria-hidden="true"]', '.sr-only', '.visually-hidden',
+      // Google Ad Services 相关选择器
+      '[data-ad-client]', '[data-ad-slot]', '.adsbygoogle',
+      'ins[class*="adsbygoogle"]', '[id*="google_ads"]', '[class*="google-ads"]'
     ];
     
     const elements = contentRoot.querySelectorAll(translatableSelectors.join(', '));
@@ -570,6 +573,9 @@ class TranslationController {
       // 排除已翻译的元素
       if (el.hasAttribute('data-ai-translated')) return false;
       
+      // 检查元素是否包含script标签或其他不应翻译的内容
+      if (el.querySelector('script, style, noscript')) return false;
+      
       // 排除只包含其他可翻译元素的容器
       const hasTranslatableChildren = el.querySelector(translatableSelectors.join(', '));
       if (hasTranslatableChildren && el.children.length > 0) {
@@ -585,6 +591,9 @@ class TranslationController {
       // 文本长度检查
       if (text.length < 3 || text.length > 5000) return false;
       
+      // 检查是否为JavaScript代码内容
+      if (this.isJavaScriptContent(text)) return false;
+      
       // 内容质量检查
       if (!/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\u1100-\u11ff\uac00-\ud7af\u0400-\u04ff\u0370-\u03ff\u0590-\u05ff\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff\u1f00-\u1fff\u2000-\u206f\u2e00-\u2e7f\ua720-\ua7ff\uab00-\uabbf\ufb00-\ufb4f\u0100-\u017f\u1e00-\u1eff]|[a-zA-Z]/.test(text)) {
         return false;
@@ -599,6 +608,64 @@ class TranslationController {
       
       return true;
     });
+  }
+
+  // 检查文本内容是否为JavaScript代码
+  isJavaScriptContent(text) {
+    // 如果文本太短，不太可能是脚本代码
+    if (text.length < 20) return false;
+    
+    // 检查是否包含Google Ad Services相关的特征
+    const googleAdPatterns = [
+      /googleadservices\.com/i,
+      /pagead\/conversion/i,
+      /gad_source/i,
+      /adview_type/i,
+      /adview_query_id/i,
+      /attributionsrc/i,
+      /new\s+Image\s*\(/i,
+      /\.setAttribute\s*\(/i
+    ];
+    
+    // 检查JavaScript代码特征
+    const jsPatterns = [
+      /function\s*\(/i,
+      /\(\s*function\s*\(/i,
+      /var\s+\w+\s*=/i,
+      /\.call\s*\(/i,
+      /\.src\s*=/i,
+      /\{.*var.*\}/i,
+      /\(\s*\)\s*\{/i,
+      /\}\s*\(\s*\)\s*;/i
+    ];
+    
+    // 检查是否匹配Google广告相关模式
+    const hasGoogleAdPattern = googleAdPatterns.some(pattern => pattern.test(text));
+    
+    // 检查是否匹配JavaScript代码模式
+    const hasJsPattern = jsPatterns.some(pattern => pattern.test(text));
+    
+    // 如果同时包含Google广告和JavaScript特征，很可能是广告脚本
+    if (hasGoogleAdPattern && hasJsPattern) return true;
+    
+    // 检查是否是典型的JavaScript函数调用结构
+    const isFunctionCall = /^\s*\(\s*function\s*\(\s*\)\s*\{.*\}\s*\)\s*\(\s*\)\s*;?\s*$/i.test(text);
+    if (isFunctionCall) return true;
+    
+    // 检查是否包含多个JavaScript关键字
+    const jsKeywords = ['function', 'var', 'src', 'setAttribute', 'call', 'new Image'];
+    const keywordCount = jsKeywords.filter(keyword => 
+      new RegExp('\\b' + keyword.replace(/\s/g, '\\s+') + '\\b', 'i').test(text)
+    ).length;
+    
+    if (keywordCount >= 3) return true;
+    
+    // 检查是否是压缩的JavaScript代码（包含很多特殊字符）
+    const specialCharCount = (text.match(/[{}();=]/g) || []).length;
+    const specialCharRatio = specialCharCount / text.length;
+    if (specialCharRatio > 0.1 && text.length > 100) return true;
+    
+    return false;
   }
 
   // 并发翻译池 - 实现真正的并发翻译
