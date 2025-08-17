@@ -933,18 +933,11 @@ class TranslationController {
     element.appendChild(container);
   }
 
-  // 替换显示模式
+  // 替换显示模式 - 无样式，保持原文字体样式
   applyReplace(element, originalText, translation) {
     element.innerHTML = translation;
     element.title = `原文: ${originalText}`;
-    element.style.cssText = `
-      background: linear-gradient(120deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
-      padding: 3px 6px;
-      border-radius: 4px;
-      border-bottom: 2px dotted #4f46e5;
-      cursor: help;
-      transition: all 0.2s ease;
-    `;
+    // 不应用任何样式，让译文以原文的字体样式显示
   }
 
   // 并排显示模式
