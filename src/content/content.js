@@ -476,8 +476,10 @@ class TranslationController {
 
       const currentSettings = settings || this.settings;
       
-      // 检查API密钥
-      if (!currentSettings.apiKey) {
+      // 检查API密钥 (Microsoft Translator 和 Ollama 不需要)
+      if (!currentSettings.apiKey && 
+          currentSettings.aiModel !== 'microsoft-translator' && 
+          currentSettings.aiModel !== 'ollama') {
         this.hideProgress();
         this.showNotification('请先在插件设置中配置API密钥', 'warning');
         return;

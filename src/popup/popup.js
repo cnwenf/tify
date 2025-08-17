@@ -360,8 +360,10 @@ class PopupController {
   // 翻译当前页面
   async translateCurrentPage() {
     try {
-      // 检查API密钥
-      if (!this.settings.apiKey) {
+      // 检查API密钥 (Microsoft Translator 和 Ollama 不需要)
+      if (!this.settings.apiKey && 
+          this.settings.aiModel !== 'microsoft-translator' && 
+          this.settings.aiModel !== 'ollama') {
         this.showNotification('请先配置API密钥', 'warning');
         return;
       }
@@ -423,7 +425,10 @@ class PopupController {
 
   // 测试API
   async testAPI() {
-    if (!this.settings.apiKey) {
+    // Microsoft Translator 和 Ollama 不需要API Key
+    if (!this.settings.apiKey && 
+        this.settings.aiModel !== 'microsoft-translator' && 
+        this.settings.aiModel !== 'ollama') {
       this.showNotification('请先输入API Key', 'warning');
       return;
     }
