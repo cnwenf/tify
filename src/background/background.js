@@ -262,7 +262,7 @@ class BackgroundService {
   // 设置默认设置
   async setDefaultSettings() {
     const defaultSettings = {
-      translateEnabled: false,
+      translateEnabled: true, // 默认启用AI翻译
       aiModel: 'openai-gpt35',
       sourceLang: 'auto',
       targetLang: 'zh',
@@ -293,7 +293,7 @@ class BackgroundService {
       ]);
 
       return {
-        translateEnabled: result.translateEnabled || false,
+        translateEnabled: result.translateEnabled !== undefined ? result.translateEnabled : true, // 默认启用
         aiModel: result.aiModel || 'openai-gpt35',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',

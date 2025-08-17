@@ -25,7 +25,6 @@ class PopupController {
   // 初始化DOM元素
   initElements() {
     this.elements = {
-      translateToggle: document.getElementById('translateToggle'),
       aiModel: document.getElementById('aiModel'),
       ollamaModel: document.getElementById('ollamaModel'),
       ollamaModelSection: document.getElementById('ollamaModelSection'),
@@ -57,7 +56,6 @@ class PopupController {
   async loadSettings() {
     try {
       const result = await chrome.storage.sync.get([
-        'translateEnabled',
         'aiModel',
         'ollamaModel',
         'sourceLang',
@@ -72,7 +70,7 @@ class PopupController {
       ]);
 
       this.settings = {
-        translateEnabled: result.translateEnabled || false,
+        translateEnabled: true, // 默认启用AI翻译
         aiModel: result.aiModel || 'openai-gpt35',
         ollamaModel: result.ollamaModel || '',
         sourceLang: result.sourceLang || 'auto',
@@ -109,14 +107,6 @@ class PopupController {
 
   // 绑定事件
   bindEvents() {
-    // 翻译开关
-    this.elements.translateToggle.addEventListener('change', (e) => {
-      this.settings.translateEnabled = e.target.checked;
-      this.saveSettings();
-      this.updateStatus();
-      this.notifyContentScript();
-    });
-
     // AI模型选择
     this.elements.aiModel.addEventListener('change', (e) => {
       this.settings.aiModel = e.target.value;
@@ -244,7 +234,6 @@ class PopupController {
 
   // 更新UI
   updateUI() {
-    this.elements.translateToggle.checked = this.settings.translateEnabled;
     this.elements.aiModel.value = this.settings.aiModel;
     this.elements.sourceLang.value = this.settings.sourceLang;
     this.elements.targetLang.value = this.settings.targetLang;
@@ -275,17 +264,11 @@ class PopupController {
     const statusDot = this.elements.statusIndicator.querySelector('.status-dot');
     const statusText = this.elements.statusIndicator.querySelector('.status-text');
 
-    if (this.settings.translateEnabled) {
-      statusDot.style.background = 'linear-gradient(45deg, #10b981, #059669)';
-      statusDot.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
-      statusText.textContent = '已启用';
-      statusText.style.color = '#10b981';
-    } else {
-      statusDot.style.background = '#6b7280';
-      statusDot.style.boxShadow = 'none';
-      statusText.textContent = '已禁用';
-      statusText.style.color = '#6b7280';
-    }
+    // AI翻译始终启用
+    statusDot.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+    statusDot.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
+    statusText.textContent = '已启用';
+    statusText.style.color = '#10b981';
   }
 
   // 更新模型信息
