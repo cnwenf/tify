@@ -50,8 +50,7 @@
     },
     "toggle-translation": {
       "suggested_key": {
-        "default": "Ctrl+A",
-        "mac": "Ctrl+A"
+        "default": "Ctrl+A"
       },
       "description": "切换翻译状态"
     },

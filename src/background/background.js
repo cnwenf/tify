@@ -616,6 +616,8 @@ ${text}`;
   async translateWithMicrosoft(text, sourceLang, targetLang, settings) {
     // 使用免费的MyMemory翻译API作为微软翻译的替代
     const endpoint = 'https://api.mymemory.translated.net/get';
+    const maxRetries = 3;
+    let lastError;
     
     // 语言代码映射
     const langMap = {
@@ -641,24 +643,87 @@ ${text}`;
       'langpair': fromLang === '' ? `${toLang}` : `${fromLang}|${toLang}`
     });
 
-    const response = await fetch(`${endpoint}?${params}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+    // 实现重试机制处理频率限制
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Microsoft Translator 翻译尝试 ${attempt + 1}/${maxRetries + 1}`);
+        
+        const response = await fetch(`${endpoint}?${params}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Chrome-Extension-Translator/2.0'
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Microsoft Translator API 错误响应:', errorText);
+          
+          // 处理频率限制错误 (429)
+          if (response.status === 429) {
+            if (attempt < maxRetries) {
+              console.log('Microsoft Translator 频率限制，等待10秒后重试...');
+              await new Promise(resolve => setTimeout(resolve, 10000)); // 等待10秒
+              continue;
+            }
+            throw new Error(`API调用频率超限，请稍后重试。MyMemory免费版本每天限制1000次请求，请降低翻译频率或稍后重试。`);
+          } else if (response.status === 403) {
+            throw new Error(`翻译服务访问被拒绝 (403)，可能是IP被限制或超过日配额`);
+          } else if (response.status >= 500 && attempt < maxRetries) {
+            // 服务器错误，可以重试
+            console.log('Microsoft Translator 服务器错误，等待5秒后重试...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            continue;
+          } else {
+            throw new Error(`Translation API error: ${response.status} - ${errorText}`);
+          }
+        }
+
+        const data = await response.json();
+        console.log('Microsoft Translator API 响应数据:', data);
+        
+        if (data && data.responseData && data.responseData.translatedText) {
+          const translation = data.responseData.translatedText;
+          if (translation && translation.trim()) {
+            console.log('Microsoft Translator 翻译成功:', translation);
+            return translation;
+          } else {
+            throw new Error('翻译服务返回空结果');
+          }
+        } else if (data && data.responseStatus === 429) {
+          // MyMemory API 特殊的频率限制响应
+          if (attempt < maxRetries) {
+            console.log('MyMemory API 频率限制，等待15秒后重试...');
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            continue;
+          }
+          throw new Error('API调用频率超限，请稍后重试。MyMemory免费版本每天限制1000次请求。');
+        } else {
+          console.error('Microsoft Translator 意外的响应格式:', data);
+          throw new Error('翻译服务返回无效响应');
+        }
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`Microsoft Translator 翻译尝试 ${attempt + 1} 失败:`, error.message);
+        
+        // 如果是网络错误且还有重试机会，则继续重试
+        if ((error.name === 'TypeError' || error.message.includes('fetch')) && attempt < maxRetries) {
+          console.log('Microsoft Translator 网络错误，等待3秒后重试...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          continue;
+        }
+        
+        // 如果不是可重试的错误，或者已经达到最大重试次数，抛出错误
+        if (attempt === maxRetries) {
+          break;
+        }
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Translation API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    
-    if (data && data.responseData && data.responseData.translatedText) {
-      return data.responseData.translatedText;
-    }
-    
-    throw new Error('翻译服务返回无效响应');
+    // 所有重试都失败了
+    throw new Error(`Microsoft Translator 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
   }
 
   // 使用Ollama翻译
