@@ -189,7 +189,8 @@ class TranslationController {
         'targetLang',
         'translateMode',
         'apiKey',
-        'customEndpoint'
+        'customEndpoint',
+        'concurrencyLimit'
       ]);
 
       this.settings = {
@@ -199,8 +200,12 @@ class TranslationController {
         targetLang: result.targetLang || 'zh',
         translateMode: result.translateMode || 'immersive-bilingual',
         apiKey: result.apiKey || '',
-        customEndpoint: result.customEndpoint || ''
+        customEndpoint: result.customEndpoint || '',
+        concurrencyLimit: result.concurrencyLimit || 5
       };
+      
+      // 更新并发限制
+      this.concurrencyLimit = this.settings.concurrencyLimit;
     } catch (error) {
       console.error('Tidy: 加载设置失败:', error);
       // 使用默认设置
@@ -232,6 +237,10 @@ class TranslationController {
       case 'settingsChanged':
         console.log('Tidy: 设置已更新');
         this.settings = message.settings;
+        // 更新并发限制
+        if (this.settings.concurrencyLimit) {
+          this.concurrencyLimit = this.settings.concurrencyLimit;
+        }
         this.updateFloatButton();
         sendResponse({ success: true });
         break;
@@ -666,7 +675,8 @@ class TranslationController {
 
   // 并发翻译池 - 实现真正的并发翻译
   async translateWithConcurrencyPool(elements, settings) {
-    const maxConcurrency = this.concurrencyLimit;
+    // 微软翻译服务使用单并发模式
+    const maxConcurrency = settings.aiModel === 'microsoft-translator' ? 1 : this.concurrencyLimit;
     let index = 0;
     let successCount = 0;
     let failureCount = 0;
