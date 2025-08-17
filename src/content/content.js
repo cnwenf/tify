@@ -174,7 +174,7 @@ class TranslationController {
         console.error('Tidy: 扩展上下文无效，使用默认设置');
         this.settings = {
           translateEnabled: true, // 默认启用AI翻译
-          aiModel: 'openai-gpt35',
+          aiModel: 'microsoft-translator',
           sourceLang: 'auto',
           targetLang: 'zh',
           translateMode: 'immersive-bilingual'
@@ -195,7 +195,7 @@ class TranslationController {
 
       this.settings = {
         translateEnabled: result.translateEnabled !== undefined ? result.translateEnabled : true, // 默认启用
-        aiModel: result.aiModel || 'openai-gpt35',
+        aiModel: result.aiModel || 'microsoft-translator',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',
         translateMode: result.translateMode || 'immersive-bilingual',
@@ -211,7 +211,7 @@ class TranslationController {
       // 使用默认设置
       this.settings = {
         translateEnabled: true, // 默认启用AI翻译
-        aiModel: 'openai-gpt35',
+        aiModel: 'microsoft-translator',
         sourceLang: 'auto',
         targetLang: 'zh',
         translateMode: 'immersive-bilingual'
@@ -277,7 +277,7 @@ class TranslationController {
     this.floatButton.innerHTML = `
       <div class="float-btn-container">
         <div class="float-btn-icon">🌐</div>
-        <div class="float-btn-tooltip">AI翻译</div>
+        <div class="float-btn-tooltip">翻译</div>
       </div>
     `;
 
@@ -465,7 +465,6 @@ class TranslationController {
     } else if (this.translatedElements.size > 0) {
       // 如果页面已翻译，则清除翻译
       this.clearTranslation();
-      this.showNotification('翻译已清除', 'info');
     } else {
       // 如果页面未翻译，则开始翻译
       await this.translatePage();
@@ -476,9 +475,9 @@ class TranslationController {
   async translatePage(settings = null) {
     if (this.isTranslating) return;
 
-    // 检查是否已有翻译内容，如果有则显示提示而不重复翻译
+    // 检查是否已有翻译内容，如果有则清除翻译
     if (this.translatedElements.size > 0) {
-      this.showNotification('页面已翻译，按 Alt+S 可切换翻译状态', 'info');
+      this.clearTranslation();
       return;
     }
 
@@ -1049,8 +1048,6 @@ class TranslationController {
 
     // 清除翻译弹窗
     this.hideTranslationPopup();
-
-    this.showNotification('翻译已清除', 'info');
   }
 
   // 显示翻译弹窗（现在改为在选中内容下方插入浮层）
