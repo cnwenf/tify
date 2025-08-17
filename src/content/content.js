@@ -173,7 +173,7 @@ class TranslationController {
       if (!chrome.runtime?.id || !chrome.storage) {
         console.error('Tidy: 扩展上下文无效，使用默认设置');
         this.settings = {
-          translateEnabled: false,
+          translateEnabled: true, // 默认启用AI翻译
           aiModel: 'openai-gpt35',
           sourceLang: 'auto',
           targetLang: 'zh',
@@ -193,7 +193,7 @@ class TranslationController {
       ]);
 
       this.settings = {
-        translateEnabled: result.translateEnabled || false,
+        translateEnabled: result.translateEnabled !== undefined ? result.translateEnabled : true, // 默认启用
         aiModel: result.aiModel || 'openai-gpt35',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',
@@ -205,7 +205,7 @@ class TranslationController {
       console.error('Tidy: 加载设置失败:', error);
       // 使用默认设置
       this.settings = {
-        translateEnabled: false,
+        translateEnabled: true, // 默认启用AI翻译
         aiModel: 'openai-gpt35',
         sourceLang: 'auto',
         targetLang: 'zh',
@@ -325,13 +325,9 @@ class TranslationController {
     if (!this.floatButton) return;
 
     const icon = this.floatButton.querySelector('.float-btn-icon');
-    if (this.settings.translateEnabled) {
-      icon.textContent = '✓';
-      this.floatButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-    } else {
-      icon.textContent = '🌐';
-      this.floatButton.style.background = 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)';
-    }
+    // AI翻译始终启用
+    icon.textContent = '✓';
+    this.floatButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
   }
 
   // 绑定事件
@@ -388,7 +384,7 @@ class TranslationController {
 
   // 显示选择翻译按钮
   showSelectionButton(selection) {
-    if (!this.settings.translateEnabled) return;
+    // AI翻译始终启用，移除检查
 
     this.hideSelectionButton();
 
