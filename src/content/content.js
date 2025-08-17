@@ -281,37 +281,39 @@ class TranslationController {
       </div>
     `;
 
-    // 添加样式
+    // 添加样式 - 优化悬浮窗大小和美观性
     this.floatButton.style.cssText = `
       position: fixed;
       top: 50%;
-      right: 20px;
+      right: 15px;
       z-index: 10000;
-      width: 50px;
-      height: 50px;
+      width: 42px;
+      height: 42px;
       background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
       border-radius: 50%;
-      box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+      box-shadow: 0 2px 12px rgba(79, 70, 229, 0.25);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 20px;
-      transition: all 0.3s ease;
+      font-size: 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       transform: translateY(-50%);
       user-select: none;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     `;
 
-    // 绑定悬浮按钮事件处理器
+    // 绑定悬浮按钮事件处理器 - 优化悬停效果
     this.boundFloatButtonMouseenter = () => {
-      this.floatButton.style.transform = 'translateY(-50%) scale(1.1)';
-      this.floatButton.style.boxShadow = '0 6px 25px rgba(79, 70, 229, 0.4)';
+      this.floatButton.style.transform = 'translateY(-50%) scale(1.05)';
+      this.floatButton.style.boxShadow = '0 4px 16px rgba(79, 70, 229, 0.35)';
     };
 
     this.boundFloatButtonMouseleave = () => {
       this.floatButton.style.transform = 'translateY(-50%) scale(1)';
-      this.floatButton.style.boxShadow = '0 4px 20px rgba(79, 70, 229, 0.3)';
+      this.floatButton.style.boxShadow = '0 2px 12px rgba(79, 70, 229, 0.25)';
     };
 
     this.boundFloatButtonClick = () => {
@@ -341,15 +343,15 @@ class TranslationController {
 
   // 绑定事件
   bindEvents() {
-    // 绑定事件处理器
+    // 绑定事件处理器 - 只响应Ctrl+A，不响应Command+A
     this.boundKeydownHandler = (e) => {
-      // Ctrl + A: 切换翻译
-      if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+      // 只响应 Ctrl + A (不响应 Command + A)
+      if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         this.toggleTranslation();
       }
       // Ctrl + W: 翻译整个页面
-      if (e.ctrlKey && e.key.toLowerCase() === 'w') {
+      if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'w') {
         e.preventDefault();
         this.translatePage();
       }
@@ -675,7 +677,7 @@ class TranslationController {
 
   // 并发翻译池 - 实现真正的并发翻译
   async translateWithConcurrencyPool(elements, settings) {
-    // 微软翻译服务使用单并发模式
+    // 微软翻译服务使用更保守的并发限制以避免频率限制
     const maxConcurrency = settings.aiModel === 'microsoft-translator' ? 1 : this.concurrencyLimit;
     let index = 0;
     let successCount = 0;
@@ -718,8 +720,9 @@ class TranslationController {
           }
         }
         
-        // 添加小延迟避免API限流
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // 微软翻译服务需要更长的延迟来避免频率限制
+        const delayMs = settings.aiModel === 'microsoft-translator' ? 2000 : 50;
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     };
     
