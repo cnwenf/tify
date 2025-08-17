@@ -927,38 +927,7 @@ class TranslationController {
       <div class="translated-text">${translation}</div>
     `;
     
-    // 应用样式
-    container.style.cssText = `
-      border-left: 3px solid #4f46e5;
-      padding-left: 12px;
-      margin: 6px 0;
-      background: linear-gradient(120deg, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.03) 100%);
-      border-radius: 6px;
-      transition: all 0.3s ease;
-      line-height: 1.6;
-    `;
-    
-    // 原文样式
-    const originalDiv = container.querySelector('.original-text');
-    originalDiv.style.cssText = `
-      color: #6b7280;
-      font-size: 0.92em;
-      line-height: 1.5;
-      margin-bottom: 4px;
-      opacity: 0.8;
-    `;
-    
-    // 译文样式
-    const translatedDiv = container.querySelector('.translated-text');
-    translatedDiv.style.cssText = `
-      color: #1f2937;
-      font-weight: 500;
-      line-height: 1.6;
-      background: rgba(255, 255, 255, 0.6);
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid rgba(79, 70, 229, 0.1);
-    `;
+    // 不应用任何样式，让译文继承原文的字体样式
     
     element.innerHTML = '';
     element.appendChild(container);

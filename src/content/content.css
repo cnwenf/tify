@@ -2,44 +2,23 @@
 
 /* 沉浸式双语翻译样式 - 参考immersive-translate设计 */
 .ai-translation-immersive {
-  border-left: 3px solid #4f46e5;
-  padding-left: 12px;
-  margin: 6px 0;
-  background: linear-gradient(120deg, rgba(79, 70, 229, 0.03) 0%, rgba(124, 58, 237, 0.03) 100%);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  line-height: 1.6;
-  position: relative;
+  /* 不添加任何风格，只需要在原文下面以原文的字体样式显示译文 */
 }
 
 .ai-translation-immersive:hover {
-  background: linear-gradient(120deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
-  border-left-color: #7c3aed;
-  transform: translateX(2px);
+  /* 移除悬停效果 */
 }
 
 .ai-translation-immersive .original-text {
-  color: #6b7280;
-  font-size: 0.92em;
-  line-height: 1.5;
-  margin-bottom: 4px;
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
+  /* 原文保持原有样式，不做修改 */
 }
 
 .ai-translation-immersive .translated-text {
-  color: #1f2937;
-  font-weight: 500;
-  line-height: 1.6;
-  background: rgba(255, 255, 255, 0.6);
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(79, 70, 229, 0.1);
-  position: relative;
+  /* 译文继承原文的字体样式，不添加额外样式 */
 }
 
 .ai-translation-immersive:hover .original-text {
-  opacity: 1;
+  /* 移除悬停效果 */
 }
 
 /* 传统双语对照翻译样式 */
@@ -292,7 +271,6 @@
     left: 2.5% !important;
   }
   
-  .ai-translation-immersive,
   .ai-translation-bilingual {
     padding-left: 10px;
     margin: 5px 0;
@@ -313,12 +291,10 @@
     padding: 10px;
   }
   
-  .ai-translation-immersive .original-text,
   .ai-translation-bilingual .original-text {
     font-size: 0.9em;
   }
   
-  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     padding: 5px 6px;
   }
@@ -344,7 +320,6 @@
     max-width: calc(100vw - 20px);
   }
   
-  .ai-translation-immersive,
   .ai-translation-bilingual {
     padding-left: 8px;
     margin: 4px 0;
@@ -361,13 +336,11 @@
     display: none !important;
   }
   
-  .ai-translation-immersive,
   .ai-translation-bilingual {
     background: transparent !important;
     border-left: 2px solid #666 !important;
   }
   
-  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     background: #f5f5f5 !important;
     border: 1px solid #ddd !important;
@@ -385,18 +358,15 @@
 
 /* 深色模式支持 */
 @media (prefers-color-scheme: dark) {
-  .ai-translation-immersive,
   .ai-translation-bilingual {
     background: linear-gradient(120deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
     border-left-color: #8b5cf6;
   }
   
-  .ai-translation-immersive .original-text,
   .ai-translation-bilingual .original-text {
     color: #9ca3af;
   }
   
-  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     color: #f3f4f6;
     background: rgba(31, 41, 55, 0.8);
@@ -441,13 +411,11 @@
 
 /* 高对比度模式支持 */
 @media (prefers-contrast: high) {
-  .ai-translation-immersive,
   .ai-translation-bilingual {
     border-left-width: 4px;
     border-left-color: #000;
   }
   
-  .ai-translation-immersive .translated-text,
   .ai-translation-bilingual .translated-text {
     border: 2px solid #000;
     background: #fff;
@@ -473,7 +441,6 @@
 
 /* 减少动画模式支持 */
 @media (prefers-reduced-motion: reduce) {
-  .ai-translation-immersive,
   .ai-translation-bilingual,
   .ai-translation-replace,
   .ai-translation-side-by-side,
@@ -490,7 +457,6 @@
     border-top-color: #4f46e5;
   }
   
-  .ai-translation-immersive:hover,
   .ai-translation-bilingual:hover,
   .ai-translation-replace:hover {
     transform: none !important;
@@ -498,8 +464,6 @@
 }
 
 /* 文本选择样式优化 */
-.ai-translation-immersive .original-text::selection,
-.ai-translation-immersive .translated-text::selection,
 .ai-translation-bilingual .original-text::selection,
 .ai-translation-bilingual .translated-text::selection {
   background: rgba(79, 70, 229, 0.3);
@@ -529,7 +493,6 @@
 }
 
 /* 翻译效果动画 */
-.ai-translation-immersive,
 .ai-translation-bilingual,
 .ai-translation-side-by-side {
   animation: translateIn 0.5s ease-out;
@@ -546,35 +509,4 @@
   }
 }
 
-/* 高级视觉效果 */
-.ai-translation-immersive::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-.ai-translation-immersive:hover::before {
-  width: 4px;
-  box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
-}
-
-/* 翻译类型标识 */
-.ai-translation-immersive .translated-text::after {
-  content: '🌐';
-  position: absolute;
-  right: 6px;
-  top: 4px;
-  font-size: 12px;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.ai-translation-immersive:hover .translated-text::after {
-  opacity: 0.9;
-}
+/* 高级视觉效果 - 已移除 ai-translation-immersive 相关样式 */
