@@ -363,7 +363,15 @@ class BackgroundService {
 // 翻译服务类
 class TranslationService {
   constructor() {
-    // 微软翻译服务不需要endpoint，ollama使用本地endpoint
+    // API端点配置
+    this.apiEndpoints = {
+      'openai-gpt4': 'https://api.openai.com/v1/chat/completions',
+      'openai-gpt35': 'https://api.openai.com/v1/chat/completions',
+      'claude-3': 'https://api.anthropic.com/v1/messages',
+      'gemini-pro': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+      'qwen3': 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'
+    };
+    // Ollama本地端点
     this.ollamaEndpoint = 'http://localhost:11434/api/generate';
   }
 
@@ -388,6 +396,16 @@ class TranslationService {
         translation = await this.translateWithMicrosoft(text, settings.sourceLang, settings.targetLang, settings);
       } else if (settings.aiModel === 'ollama') {
         translation = await this.translateWithOllama(text, sourceLang, targetLang, settings);
+      } else if (settings.aiModel.startsWith('openai-')) {
+        translation = await this.translateWithOpenAI(text, sourceLang, targetLang, settings);
+      } else if (settings.aiModel === 'claude-3') {
+        translation = await this.translateWithClaude(text, sourceLang, targetLang, settings);
+      } else if (settings.aiModel === 'gemini-pro') {
+        translation = await this.translateWithGemini(text, sourceLang, targetLang, settings);
+      } else if (settings.aiModel === 'qwen3') {
+        translation = await this.translateWithQwen(text, sourceLang, targetLang, settings);
+      } else if (settings.aiModel === 'custom') {
+        translation = await this.translateWithCustom(text, sourceLang, targetLang, settings);
       } else {
         throw new Error('不支持的翻译模型');
       }
@@ -469,6 +487,268 @@ ${text}`;
       console.error('Ollama translation error:', error);
       throw new Error(`Ollama翻译失败: ${error.message}`);
     }
+  }
+
+  // 使用OpenAI翻译
+  async translateWithOpenAI(text, sourceLang, targetLang, settings) {
+    const endpoint = settings.customEndpoint || this.apiEndpoints[settings.aiModel];
+    const model = settings.aiModel === 'openai-gpt4' ? 'gpt-4' : 'gpt-3.5-turbo';
+
+    const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
+
+${text}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.3
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content?.trim() || '翻译失败';
+  }
+
+  // 使用Claude翻译
+  async translateWithClaude(text, sourceLang, targetLang, settings) {
+    const endpoint = settings.customEndpoint || this.apiEndpoints['claude-3'];
+
+    const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果：
+
+${text}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': settings.apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Claude API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.content[0]?.text?.trim() || '翻译失败';
+  }
+
+  // 使用Gemini翻译
+  async translateWithGemini(text, sourceLang, targetLang, settings) {
+    const endpoint = `${settings.customEndpoint || this.apiEndpoints['gemini-pro']}?key=${settings.apiKey}`;
+
+    const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果：
+
+${text}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.3
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.candidates[0]?.content?.parts[0]?.text?.trim() || '翻译失败';
+  }
+
+  // 使用阿里云百炼Qwen翻译
+  async translateWithQwen(text, sourceLang, targetLang, settings) {
+    const endpoint = settings.customEndpoint || this.apiEndpoints['qwen3'];
+    const maxRetries = 2;
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Qwen3 翻译尝试 ${attempt + 1}/${maxRetries + 1}`);
+        
+        const prompt = `请将以下文本从${sourceLang}翻译成${targetLang}，只返回翻译结果，不要包含任何解释：
+
+${text}`;
+
+        const requestBody = {
+          model: 'qwen3-235b-a22b-instruct-2507',
+          input: {
+            messages: [
+              {
+                role: 'user',
+                content: prompt
+              }
+            ]
+          },
+          parameters: {
+            max_tokens: 1000,
+            temperature: 0.3,
+            top_p: 0.8,
+            result_format: 'message'
+          }
+        };
+
+        console.log('Qwen3 请求体:', JSON.stringify(requestBody, null, 2));
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.apiKey}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        console.log('Qwen3 响应状态:', response.status);
+        console.log('Qwen3 响应头:', Object.fromEntries(response.headers.entries()));
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Qwen3 API 错误响应:', errorText);
+          
+          // 根据状态码判断是否应该重试
+          if (response.status === 429) {
+            // 频率限制，等待更长时间后重试
+            if (attempt < maxRetries) {
+              console.log('Qwen3 频率限制，等待5秒后重试...');
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              continue;
+            }
+            throw new Error(`Qwen API 调用频率超限: ${response.status} - ${errorText}`);
+          } else if (response.status === 401) {
+            // 认证错误，不需要重试
+            throw new Error(`Qwen API 认证失败，请检查API密钥: ${response.status} - ${errorText}`);
+          } else if (response.status === 403) {
+            // 权限错误，不需要重试
+            throw new Error(`Qwen API 访问被拒绝，请检查权限和余额: ${response.status} - ${errorText}`);
+          } else if (response.status >= 500 && attempt < maxRetries) {
+            // 服务器错误，可以重试
+            console.log('Qwen3 服务器错误，等待3秒后重试...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            continue;
+          } else {
+            throw new Error(`Qwen API error: ${response.status} - ${errorText}`);
+          }
+        }
+
+        const data = await response.json();
+        console.log('Qwen3 API 响应数据:', JSON.stringify(data, null, 2));
+        
+        // 根据阿里云百炼的响应格式解析
+        if (data.output && data.output.choices && data.output.choices[0]) {
+          const translation = data.output.choices[0].message.content.trim();
+          if (translation) {
+            console.log('Qwen3 翻译成功:', translation);
+            return translation;
+          } else {
+            throw new Error('Qwen API 返回空翻译结果');
+          }
+        } else if (data.output && data.output.text) {
+          const translation = data.output.text.trim();
+          if (translation) {
+            console.log('Qwen3 翻译成功:', translation);
+            return translation;
+          } else {
+            throw new Error('Qwen API 返回空翻译结果');
+          }
+        } else if (data.code && data.message) {
+          // 处理API错误响应格式
+          console.error('Qwen API 错误:', data.code, data.message);
+          throw new Error(`Qwen API 错误: ${data.code} - ${data.message}`);
+        } else {
+          console.error('Qwen3 意外的响应格式:', data);
+          throw new Error('Qwen API 返回格式异常');
+        }
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`Qwen3 翻译尝试 ${attempt + 1} 失败:`, error.message);
+        
+        // 如果是网络错误且还有重试机会，则继续重试
+        if ((error.name === 'TypeError' || error.message.includes('fetch')) && attempt < maxRetries) {
+          console.log('Qwen3 网络错误，等待2秒后重试...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+        
+        // 如果不是可重试的错误，或者已经达到最大重试次数，抛出错误
+        if (attempt === maxRetries) {
+          break;
+        }
+      }
+    }
+
+    // 所有重试都失败了
+    throw new Error(`Qwen3 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
+  }
+
+  // 使用自定义端点翻译
+  async translateWithCustom(text, sourceLang, targetLang, settings) {
+    if (!settings.customEndpoint) {
+      throw new Error('请配置自定义API端点');
+    }
+
+    const response = await fetch(settings.customEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.apiKey}`
+      },
+      body: JSON.stringify({
+        text: text,
+        source_lang: sourceLang,
+        target_lang: targetLang
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Custom API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.translation || data.result || '翻译失败';
   }
 
   // 测试API连接

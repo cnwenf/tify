@@ -277,7 +277,13 @@ class PopupController {
     // 可以在这里添加针对不同模型的特殊提示
     const modelTips = {
       'microsoft-translate': '🌐 微软翻译服务，快速稳定，无需API密钥',
-      'ollama': '🏠 本地AI模型，私密安全，需要本地运行Ollama服务'
+      'ollama': '🏠 本地AI模型，私密安全，需要本地运行Ollama服务',
+      'openai-gpt4': '🧠 最强理解能力，适合复杂文本',
+      'openai-gpt35': '⚡ 快速稳定，日常使用推荐',
+      'claude-3': '🎨 创意表达优秀，文学翻译佳',
+      'gemini-pro': '🌍 多语言支持强，小语种优化',
+      'qwen3': '🇨🇳 中文理解深度，国产优选',
+      'custom': '🔧 自定义配置，请确保端点正确'
     };
 
     // 这里可以显示模型提示，暂时保留接口
@@ -595,6 +601,7 @@ class PopupController {
     // 根据模型显示/隐藏API设置
     const apiSettingsSection = document.querySelector('.settings-details');
     if (apiSettingsSection) {
+      // 只有微软翻译服务不需要API密钥
       if (model === 'microsoft-translate') {
         apiSettingsSection.style.display = 'none';
       } else {
