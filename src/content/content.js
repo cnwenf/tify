@@ -338,13 +338,13 @@ class TranslationController {
   bindEvents() {
     // 绑定事件处理器
     this.boundKeydownHandler = (e) => {
-      // Option/Alt + A: 切换翻译（Mac/Win 双平台）
-      if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+      // Ctrl + A: 切换翻译
+      if (e.ctrlKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         this.toggleTranslation();
       }
-      // Option/Alt + W: 翻译整个页面
-      if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'w') {
+      // Ctrl + W: 翻译整个页面
+      if (e.ctrlKey && e.key.toLowerCase() === 'w') {
         e.preventDefault();
         this.translatePage();
       }
@@ -450,7 +450,12 @@ class TranslationController {
   async toggleTranslation() {
     if (this.isTranslating) {
       this.clearTranslation();
+    } else if (this.translatedElements.size > 0) {
+      // 如果页面已翻译，则清除翻译
+      this.clearTranslation();
+      this.showNotification('翻译已清除', 'info');
     } else {
+      // 如果页面未翻译，则开始翻译
       await this.translatePage();
     }
   }
@@ -458,6 +463,12 @@ class TranslationController {
   // 翻译页面 - 使用最新的分段并发翻译策略
   async translatePage(settings = null) {
     if (this.isTranslating) return;
+
+    // 检查是否已有翻译内容，如果有则显示提示而不重复翻译
+    if (this.translatedElements.size > 0) {
+      this.showNotification('页面已翻译，按 Ctrl+A 可切换翻译状态', 'info');
+      return;
+    }
 
     try {
       this.isTranslating = true;
