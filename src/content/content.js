@@ -917,9 +917,6 @@ class TranslationController {
       case 'replace':
         this.applyReplace(element, originalText, translation);
         break;
-      case 'side-by-side':
-        this.applySideBySide(element, originalText, translation);
-        break;
       default:
         this.applyImmersiveBilingual(element, originalText, translation);
     }
@@ -949,47 +946,6 @@ class TranslationController {
     element.innerHTML = translation;
     element.title = `原文: ${originalText}`;
     // 不应用任何样式，让译文以原文的字体样式显示
-  }
-
-  // 并排显示模式
-  applySideBySide(element, originalText, translation) {
-    const container = document.createElement('div');
-    container.className = 'ai-translation-side-by-side';
-    
-    container.innerHTML = `
-      <div class="original-side">${originalText}</div>
-      <div class="translated-side">${translation}</div>
-    `;
-    
-    container.style.cssText = `
-      display: flex;
-      gap: 12px;
-      border: 1px solid rgba(79, 70, 229, 0.2);
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 4px 0;
-    `;
-    
-    const originalSide = container.querySelector('.original-side');
-    originalSide.style.cssText = `
-      flex: 1;
-      padding: 10px;
-      background: rgba(79, 70, 229, 0.05);
-      color: #4b5563;
-      font-size: 0.95em;
-    `;
-    
-    const translatedSide = container.querySelector('.translated-side');
-    translatedSide.style.cssText = `
-      flex: 1;
-      padding: 10px;
-      background: rgba(16, 185, 129, 0.05);
-      color: #1f2937;
-      font-weight: 500;
-    `;
-    
-    element.innerHTML = '';
-    element.appendChild(container);
   }
 
   // 清除翻译

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新功能测试 - AI翻译插件</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .feature-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+        .feature-title {
+            color: #4f46e5;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .test-text {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4f46e5;
+            margin: 10px 0;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .status.new {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status.updated {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .instructions {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+        }
+        .code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI翻译插件新功能测试</h1>
+        
+        <div class="instructions">
+            <h3>📋 测试说明</h3>
+            <p>请按照以下步骤测试新功能：</p>
+            <ol>
+                <li>确保已加载最新版本的插件</li>
+                <li>打开插件弹窗，查看模型选择是否包含新的选项</li>
+                <li>测试不同的翻译模式（双语对照、直接翻译）</li>
+                <li>如果有Ollama环境，测试本地模型检测功能</li>
+            </ol>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-title">
+                <span class="status new">新增</span> 微软翻译服务支持
+            </div>
+            <p>新增了微软认知服务翻译API支持，提供快速准确的翻译服务。</p>
+            <div class="test-text">
+                This is a test sentence for Microsoft Translator service. It should provide fast and accurate translation results.
+            </div>
+            <p><strong>测试要点：</strong></p>
+            <ul>
+                <li>在模型选择中应该看到"🌐 微软翻译"选项</li>
+                <li>选择微软翻译时需要配置API密钥</li>
+                <li>支持多种语言的快速翻译</li>
+            </ul>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-title">
+                <span class="status new">新增</span> Ollama本地模型支持
+            </div>
+            <p>支持本地Ollama服务，自动检测已安装的模型并提供下拉选择。</p>
+            <div class="test-text">
+                Hello world! This text can be translated using local Ollama models for better privacy protection.
+            </div>
+            <p><strong>Ollama设置示例：</strong></p>
+            <div class="code">
+# 安装Ollama并下载模型<br>
+ollama pull llama2<br>
+ollama pull codellama<br>
+ollama serve
+            </div>
+            <p><strong>测试要点：</strong></p>
+            <ul>
+                <li>选择"🦙 Ollama"时应显示模型子选择区域</li>
+                <li>自动检测本地运行的Ollama模型</li>
+                <li>支持刷新模型列表功能</li>
+                <li>无需API密钥，完全本地化</li>
+            </ul>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-title">
+                <span class="status updated">优化</span> 动态模型列表加载
+            </div>
+            <p>所有AI服务商的模型现在都支持动态加载，不再写死模型ID。</p>
+            <div class="test-text">
+                The models are now loaded dynamically with better user experience and descriptions.
+            </div>
+            <p><strong>改进内容：</strong></p>
+            <ul>
+                <li>模型选择下拉框显示图标和描述</li>
+                <li>选择不同模型时显示相应提示信息</li>
+                <li>支持未来扩展更多AI服务商</li>
+            </ul>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-title">
+                <span class="status updated">简化</span> 翻译显示模式
+            </div>
+            <p>简化翻译模式选择，现在只保留两种最常用的模式。</p>
+            <div class="test-text">
+                This paragraph will demonstrate the simplified translation modes. Try both bilingual and direct translation modes.
+            </div>
+            <p><strong>可用模式：</strong></p>
+            <ul>
+                <li><strong>双语对照</strong>（默认）：原文+译文同时显示，完美阅读体验</li>
+                <li><strong>直接翻译</strong>：直接替换原文，鼠标悬停显示原文</li>
+            </ul>
+            <p><strong>移除的模式：</strong></p>
+            <ul>
+                <li>并排对照模式（已移除，简化界面）</li>
+            </ul>
+        </div>
+
+        <div class="feature-section">
+            <div class="feature-title">
+                <span class="status updated">优化</span> 默认设置
+            </div>
+            <p>新的默认设置提供更好的开箱即用体验。</p>
+            <div class="test-text">
+                Default settings have been optimized for better out-of-box experience. The bilingual mode is now the default translation mode.
+            </div>
+            <p><strong>默认配置：</strong></p>
+            <ul>
+                <li>默认翻译模式：双语对照</li>
+                <li>默认AI模型：OpenAI GPT-3.5</li>
+                <li>默认目标语言：中文</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <h3>🧪 验证步骤</h3>
+            <ol>
+                <li><strong>模型选择测试：</strong>打开插件弹窗，确认可以看到微软翻译和Ollama选项</li>
+                <li><strong>Ollama测试：</strong>如果本地运行了Ollama，选择后应显示模型列表</li>
+                <li><strong>翻译模式测试：</strong>确认只有两种翻译模式，且默认选中"双语对照"</li>
+                <li><strong>翻译功能测试：</strong>选择文本并测试不同模式的翻译效果</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: #6b7280;">
+            <p>✨ 测试完成后，请确保所有新功能都能正常工作</p>
+        </div>
+    </div>
+</body>
+</html>
