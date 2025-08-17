@@ -162,23 +162,50 @@ input:checked + .slider:before {
   color: #1f2937;
 }
 
-/* 选择框样式 */
-.model-select, .lang-select, .api-input {
+/* 输入框和选择框样式 */
+.lang-select,
+.model-select,
+.setting-select,
+.api-input {
   width: 100%;
-  max-width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 500;
   background: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  color: #374151;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
-.model-select:focus, .lang-select:focus, .api-input:focus {
-  outline: none;
+.lang-select:focus,
+.model-select:focus,
+.setting-select:focus,
+.api-input:focus {
   border-color: #4f46e5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.lang-select:hover,
+.model-select:hover,
+.setting-select:hover {
+  border-color: #6366f1;
+}
+
+/* Ollama模型容器样式 */
+.ollama-model-container {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.ollama-model-container:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 /* 语言设置样式 */
