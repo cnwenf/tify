@@ -220,15 +220,20 @@ class PopupController {
     document.addEventListener('keydown', (e) => {
       if (e.altKey) {
         switch (e.key) {
-          case 'w':
-          case 'W':
+          case 't':
+          case 'T':
             e.preventDefault();
             this.translateCurrentPage();
             break;
-          case 'c':
-          case 'C':
+          case 'r':
+          case 'R':
             e.preventDefault();
             this.clearTranslation();
+            break;
+          case 's':
+          case 'S':
+            e.preventDefault();
+            // 切换翻译状态 - 这个功能可能需要实现
             break;
         }
       }

@@ -343,17 +343,22 @@ class TranslationController {
 
   // 绑定事件
   bindEvents() {
-    // 绑定事件处理器 - 只响应Ctrl+A，不响应Command+A
+    // 绑定事件处理器 - 使用Alt键避免与系统快捷键冲突
     this.boundKeydownHandler = (e) => {
-      // 只响应 Ctrl + A (不响应 Command + A)
-      if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'a') {
+      // Alt + S: 切换翻译状态
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
         this.toggleTranslation();
       }
-      // Ctrl + W: 翻译整个页面
-      if (e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'w') {
+      // Alt + T: 翻译整个页面
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 't') {
         e.preventDefault();
         this.translatePage();
+      }
+      // Alt + R: 清除翻译
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        this.clearTranslation();
       }
     };
 
@@ -473,7 +478,7 @@ class TranslationController {
 
     // 检查是否已有翻译内容，如果有则显示提示而不重复翻译
     if (this.translatedElements.size > 0) {
-      this.showNotification('页面已翻译，按 Ctrl+A 可切换翻译状态', 'info');
+      this.showNotification('页面已翻译，按 Alt+S 可切换翻译状态', 'info');
       return;
     }
 
