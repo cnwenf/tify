@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ollama API 修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ollama API 修复测试</h1>
+    
+    <div class="test-section info">
+        <h2>问题诊断</h2>
+        <p><strong>原问题：</strong>Translation error: Error: Ollama API error: 403</p>
+        <p><strong>根本原因：</strong>CORS（跨域资源共享）限制</p>
+        <p><strong>解决方案：</strong>设置 OLLAMA_ORIGINS 环境变量 + 改进错误处理</p>
+    </div>
+
+    <div class="test-section">
+        <h2>解决步骤</h2>
+        <h3>1. 设置环境变量</h3>
+        <p><strong>Windows:</strong></p>
+        <pre>set OLLAMA_ORIGINS=*
+ollama serve</pre>
+        
+        <p><strong>Linux/Mac:</strong></p>
+        <pre>export OLLAMA_ORIGINS=*
+ollama serve</pre>
+
+        <h3>2. 或者设置特定的扩展源</h3>
+        <p>如果你想更安全，可以只允许特定的Chrome扩展：</p>
+        <pre>export OLLAMA_ORIGINS=chrome-extension://your-extension-id</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>代码修复说明</h2>
+        <h3>改进内容：</h3>
+        <ul>
+            <li>✅ 添加了 Accept 和 User-Agent headers</li>
+            <li>✅ 支持自定义 Ollama 端点</li>
+            <li>✅ 针对 403 错误提供详细的解决指导</li>
+            <li>✅ 针对 404 错误提供服务检查指导</li>
+            <li>✅ 改进了网络连接错误处理</li>
+            <li>✅ 完善了设置存储和获取逻辑</li>
+            <li>✅ 改进了 API 测试功能</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>修复的关键代码</h2>
+        <h3>主要改进：</h3>
+        <pre>// 修复前的headers
+headers: {
+  'Content-Type': 'application/json'
+}
+
+// 修复后的headers
+headers: {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'User-Agent': 'Chrome-Extension-Translator/1.0'
+}</pre>
+
+        <h3>错误处理改进：</h3>
+        <pre>if (response.status === 403) {
+  throw new Error(`Ollama API 访问被拒绝 (403)。这通常是由于CORS跨域限制导致的。请设置环境变量 OLLAMA_ORIGINS 来允许浏览器扩展访问：
+
+Windows: set OLLAMA_ORIGINS=*
+Linux/Mac: export OLLAMA_ORIGINS=*
+然后重启 Ollama 服务：ollama serve
+
+详细信息: ${errorText}`);
+}</pre>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ 修复完成</h2>
+        <p>现在当遇到 403 错误时，用户将收到明确的解决指导，而不是模糊的错误信息。</p>
+        <p><strong>下一步：</strong></p>
+        <ol>
+            <li>按照上述步骤设置环境变量</li>
+            <li>重启 Ollama 服务</li>
+            <li>重新测试翻译插件</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>验证清单</h2>
+        <div>
+            <input type="checkbox" id="check1"> <label for="check1">Ollama 服务正在运行 (ollama serve)</label><br>
+            <input type="checkbox" id="check2"> <label for="check2">模型已安装 (例如: ollama pull llama2)</label><br>
+            <input type="checkbox" id="check3"> <label for="check3">环境变量已设置 (OLLAMA_ORIGINS=*)</label><br>
+            <input type="checkbox" id="check4"> <label for="check4">服务已重启</label><br>
+            <input type="checkbox" id="check5"> <label for="check5">翻译插件已重新加载</label><br>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互功能
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = document.querySelectorAll('input[type="checkbox"]:checked').length === 5;
+                if (allChecked) {
+                    alert('太好了！所有步骤都完成了，现在可以测试翻译功能了！');
+                }
+            });
+        });
+
+        console.log('Ollama API 修复测试页面已加载');
+        console.log('修复的主要文件：src/background/background.js');
+        console.log('修复的方法：translateWithOllama()');
+    </script>
+</body>
+</html>
