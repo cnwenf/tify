@@ -15,6 +15,7 @@ class PopupController {
   async init() {
     this.initElements();
     await this.loadSettings();
+    await this.loadModelList();
     this.bindEvents();
     this.updateUI();
     this.updateUsageStats();
@@ -26,6 +27,10 @@ class PopupController {
     this.elements = {
       translateToggle: document.getElementById('translateToggle'),
       aiModel: document.getElementById('aiModel'),
+      ollamaModel: document.getElementById('ollamaModel'),
+      ollamaModelSection: document.getElementById('ollamaModelSection'),
+      refreshOllamaModels: document.getElementById('refreshOllamaModels'),
+      modelInfo: document.getElementById('modelInfo'),
       sourceLang: document.getElementById('sourceLang'),
       targetLang: document.getElementById('targetLang'),
       translateMode: document.getElementsByName('translateMode'),
@@ -54,6 +59,7 @@ class PopupController {
       const result = await chrome.storage.sync.get([
         'translateEnabled',
         'aiModel',
+        'ollamaModel',
         'sourceLang',
         'targetLang',
         'translateMode',
@@ -68,6 +74,7 @@ class PopupController {
       this.settings = {
         translateEnabled: result.translateEnabled || false,
         aiModel: result.aiModel || 'openai-gpt35',
+        ollamaModel: result.ollamaModel || '',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',
         translateMode: result.translateMode || 'immersive-bilingual',
@@ -115,7 +122,23 @@ class PopupController {
       this.settings.aiModel = e.target.value;
       this.saveSettings();
       this.updateModelInfo(e.target.value);
+      this.handleModelSelection(e.target.value);
     });
+
+    // Ollama模型选择
+    if (this.elements.ollamaModel) {
+      this.elements.ollamaModel.addEventListener('change', (e) => {
+        this.settings.ollamaModel = e.target.value;
+        this.saveSettings();
+      });
+    }
+
+    // 刷新Ollama模型列表
+    if (this.elements.refreshOllamaModels) {
+      this.elements.refreshOllamaModels.addEventListener('click', () => {
+        this.loadOllamaModels();
+      });
+    }
 
     // 源语言选择
     this.elements.sourceLang.addEventListener('change', (e) => {
@@ -230,6 +253,11 @@ class PopupController {
     this.elements.concurrencyLimit.value = this.settings.concurrencyLimit;
     this.elements.autoTranslate.checked = this.settings.autoTranslate;
 
+    // 设置Ollama模型
+    if (this.elements.ollamaModel) {
+      this.elements.ollamaModel.value = this.settings.ollamaModel;
+    }
+
     // 设置翻译模式
     this.elements.translateMode.forEach(radio => {
       radio.checked = radio.value === this.settings.translateMode;
@@ -237,6 +265,7 @@ class PopupController {
 
     this.updateStatus();
     this.updateModelInfo(this.settings.aiModel);
+    this.handleModelSelection(this.settings.aiModel);
     this.updateModePreview(this.settings.translateMode);
     this.updatePerformanceDisplay();
   }
@@ -468,11 +497,122 @@ class PopupController {
     });
   }
 
-  // 打开反馈页面
+  // 显示反馈页面
   openFeedback() {
+    const version = chrome.runtime.getManifest().version;
     chrome.tabs.create({
-      url: 'https://github.com/your-repo/tidy-translator/issues'
+      url: `https://forms.office.com/r/YourFeedbackForm?version=${version}`
     });
+  }
+
+  // 加载模型列表
+  async loadModelList() {
+    try {
+      const modelSelect = this.elements.aiModel;
+      modelSelect.innerHTML = '<option value="">加载中...</option>';
+
+      // 定义所有可用的AI模型
+      const models = [
+        { value: 'microsoft-translator', name: '微软翻译', icon: '🌐', description: '快速准确，支持多语言' },
+        { value: 'ollama', name: 'Ollama', icon: '🦙', description: '本地AI模型，隐私保护' },
+        { value: 'openai-gpt4', name: 'OpenAI GPT-4', icon: '🧠', description: '最强理解能力，适合复杂文本' },
+        { value: 'openai-gpt35', name: 'OpenAI GPT-3.5', icon: '⚡', description: '快速稳定，日常使用推荐' },
+        { value: 'claude-3', name: 'Claude 3', icon: '🎨', description: '创意表达优秀，文学翻译佳' },
+        { value: 'gemini-pro', name: 'Gemini Pro', icon: '🌍', description: '多语言支持强，小语种优化' },
+        { value: 'qwen3', name: '阿里云百炼 Qwen3', icon: '🇨🇳', description: '中文理解深度，国产优选' },
+        { value: 'custom', name: '自定义模型', icon: '🔧', description: '自定义配置，请确保端点正确' }
+      ];
+
+      // 清空并重新填充模型选项
+      modelSelect.innerHTML = '';
+      models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.value;
+        option.textContent = `${model.icon} ${model.name}`;
+        option.setAttribute('data-description', model.description);
+        modelSelect.appendChild(option);
+      });
+
+      // 设置当前选中的模型
+      modelSelect.value = this.settings.aiModel;
+
+      // 加载Ollama模型（如果选择了Ollama）
+      if (this.settings.aiModel === 'ollama') {
+        await this.loadOllamaModels();
+      }
+
+    } catch (error) {
+      console.error('加载模型列表失败:', error);
+      this.showModelInfo('加载模型列表失败', 'error');
+    }
+  }
+
+  // 处理模型选择
+  handleModelSelection(modelValue) {
+    const ollamaSection = this.elements.ollamaModelSection;
+    
+    if (modelValue === 'ollama') {
+      ollamaSection.style.display = 'block';
+      this.loadOllamaModels();
+    } else {
+      ollamaSection.style.display = 'none';
+    }
+
+    // 显示模型信息
+    const selectedOption = this.elements.aiModel.querySelector(`option[value="${modelValue}"]`);
+    if (selectedOption) {
+      const description = selectedOption.getAttribute('data-description');
+      this.showModelInfo(description, 'success');
+    }
+  }
+
+  // 加载Ollama模型列表
+  async loadOllamaModels() {
+    try {
+      const ollamaSelect = this.elements.ollamaModel;
+      ollamaSelect.innerHTML = '<option value="">检测本地模型...</option>';
+
+      // 尝试连接Ollama API
+      const response = await fetch('http://localhost:11434/api/tags');
+      
+      if (!response.ok) {
+        throw new Error('无法连接到Ollama服务');
+      }
+
+      const data = await response.json();
+      
+      if (!data.models || data.models.length === 0) {
+        ollamaSelect.innerHTML = '<option value="">未发现本地模型</option>';
+        this.showModelInfo('未发现本地Ollama模型，请先下载模型', 'error');
+        return;
+      }
+
+      // 填充模型选项
+      ollamaSelect.innerHTML = '';
+      data.models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.name;
+        option.textContent = model.name;
+        ollamaSelect.appendChild(option);
+      });
+
+      // 设置当前选中的模型
+      ollamaSelect.value = this.settings.ollamaModel;
+      
+      this.showModelInfo(`发现 ${data.models.length} 个本地模型`, 'success');
+
+    } catch (error) {
+      console.error('加载Ollama模型失败:', error);
+      this.elements.ollamaModel.innerHTML = '<option value="">连接失败</option>';
+      this.showModelInfo('无法连接到Ollama服务，请确保Ollama已启动', 'error');
+    }
+  }
+
+  // 显示模型信息
+  showModelInfo(message, type = 'info') {
+    const modelInfo = this.elements.modelInfo;
+    modelInfo.textContent = message;
+    modelInfo.className = `model-info ${type}`;
   }
 
   // 发送消息到后台脚本

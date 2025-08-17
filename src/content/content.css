@@ -72,109 +72,28 @@
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
 }
 
-/* 并排显示模式 */
-.ai-translation-side-by-side {
-  display: flex;
-  gap: 12px;
-  border: 1px solid rgba(79, 70, 229, 0.2);
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 6px 0;
-  transition: all 0.3s ease;
-}
-
-.ai-translation-side-by-side:hover {
-  border-color: rgba(79, 70, 229, 0.4);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
-}
-
-.ai-translation-side-by-side .original-side {
-  flex: 1;
-  padding: 12px;
-  background: rgba(79, 70, 229, 0.05);
-  color: #4b5563;
-  font-size: 0.95em;
-  border-right: 1px solid rgba(79, 70, 229, 0.1);
-}
-
-.ai-translation-side-by-side .translated-side {
-  flex: 1;
-  padding: 12px;
-  background: rgba(16, 185, 129, 0.05);
-  color: #1f2937;
-  font-weight: 500;
-}
-
-/* 选择翻译样式 */
-.ai-translation-selection {
+/* 替换模式样式 */
+.ai-translation-replace {
   position: relative;
-  z-index: 1000;
 }
 
-.ai-translation-selection .original-text {
-  display: block;
-  color: #6b7280;
-  font-size: 0.9em;
-  margin-bottom: 2px;
-  opacity: 0.9;
-}
-
-.ai-translation-selection .translated-text {
-  display: block;
-  color: #1f2937;
-  font-weight: 500;
-}
-
-/* 悬浮按钮样式 */
-#ai-translator-float-btn {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  backdrop-filter: blur(10px);
-}
-
-#ai-translator-float-btn .float-btn-tooltip {
+.ai-translation-replace:hover::before {
+  content: attr(title);
   position: absolute;
-  right: 60px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: -30px;
+  left: 0;
   background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
   white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  pointer-events: none;
-  backdrop-filter: blur(8px);
+  z-index: 10000;
 }
 
-#ai-translator-float-btn:hover .float-btn-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(-50%) translateX(-4px);
-}
-
-/* 选择翻译按钮样式 */
-#ai-translator-selection-btn {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  user-select: none;
-  backdrop-filter: blur(8px);
-  animation: slideInUp 0.2s ease-out;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 进度指示器样式 */
+/* 高性能动画 */
+.ai-translation-loading {
+  /* 进度指示器样式 */
 #ai-translator-progress {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   backdrop-filter: blur(10px);
@@ -276,21 +195,6 @@
     margin: 5px 0;
   }
   
-  .ai-translation-side-by-side {
-    flex-direction: column;
-    gap: 0;
-  }
-  
-  .ai-translation-side-by-side .original-side {
-    border-right: none;
-    border-bottom: 1px solid rgba(79, 70, 229, 0.1);
-    padding: 10px;
-  }
-  
-  .ai-translation-side-by-side .translated-side {
-    padding: 10px;
-  }
-  
   .ai-translation-bilingual .original-text {
     font-size: 0.9em;
   }
@@ -346,14 +250,33 @@
     border: 1px solid #ddd !important;
   }
   
-  .ai-translation-side-by-side {
-    border: 1px solid #ddd !important;
+  .ai-translation-replace {
+    background: #ffff00;
+    border-bottom: 3px solid #000;
+    color: #000;
   }
   
-  .ai-translation-side-by-side .original-side,
-  .ai-translation-side-by-side .translated-side {
-    background: transparent !important;
+  .ai-translation-replace:hover {
+    background: #ffff00;
+    border-bottom: 3px solid #000;
+    color: #000;
   }
+  
+  .ai-translation-replace:hover::before {
+    content: attr(title);
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10000;
+  }
+  
+
 }
 
 /* 深色模式支持 */
@@ -383,20 +306,7 @@
     border-bottom-color: rgba(139, 92, 246, 0.6);
   }
   
-  .ai-translation-side-by-side {
-    border-color: rgba(139, 92, 246, 0.3);
-  }
-  
-  .ai-translation-side-by-side .original-side {
-    background: rgba(139, 92, 246, 0.08);
-    color: #d1d5db;
-    border-right-color: rgba(139, 92, 246, 0.2);
-  }
-  
-  .ai-translation-side-by-side .translated-side {
-    background: rgba(16, 185, 129, 0.08);
-    color: #f3f4f6;
-  }
+
   
   #ai-translator-popup-inline div {
     background: #1f2937 !important;
@@ -428,24 +338,33 @@
     color: #000;
   }
   
-  .ai-translation-side-by-side {
-    border: 2px solid #000;
+  .ai-translation-replace:hover {
+    background: #ffff00;
+    border-bottom: 3px solid #000;
+    color: #000;
   }
   
-  .ai-translation-side-by-side .original-side,
-  .ai-translation-side-by-side .translated-side {
-    color: #000;
-    background: #fff;
+  .ai-translation-replace:hover::before {
+    content: attr(title);
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10000;
   }
+  
+
 }
 
 /* 减少动画模式支持 */
 @media (prefers-reduced-motion: reduce) {
   .ai-translation-bilingual,
   .ai-translation-replace,
-  .ai-translation-side-by-side,
-  #ai-translator-float-btn,
-  #ai-translator-selection-btn,
   .ai-translator-notification,
   #ai-translator-popup-inline {
     transition: none !important;
@@ -475,11 +394,7 @@
   color: inherit;
 }
 
-.ai-translation-side-by-side .original-side::selection,
-.ai-translation-side-by-side .translated-side::selection {
-  background: rgba(79, 70, 229, 0.25);
-  color: inherit;
-}
+
 
 /* 焦点样式 */
 #ai-translator-float-btn:focus-visible {
@@ -493,8 +408,7 @@
 }
 
 /* 翻译效果动画 */
-.ai-translation-bilingual,
-.ai-translation-side-by-side {
+.ai-translation-bilingual {
   animation: translateIn 0.5s ease-out;
 }
 

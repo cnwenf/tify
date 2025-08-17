@@ -44,13 +44,21 @@
           AI 模型
         </label>
         <select id="aiModel" class="model-select">
-          <option value="openai-gpt4">OpenAI GPT-4 (最强理解)</option>
-          <option value="openai-gpt35">OpenAI GPT-3.5 (快速稳定)</option>
-          <option value="claude-3">Claude 3 (创意表达)</option>
-          <option value="gemini-pro">Gemini Pro (多语言)</option>
-          <option value="qwen3">阿里云百炼 Qwen3 (中文优化)</option>
-          <option value="custom">自定义模型</option>
+          <option value="">加载中...</option>
         </select>
+        <div id="modelInfo" class="model-info"></div>
+        
+        <!-- Ollama模型子选择 -->
+        <div id="ollamaModelSection" class="ollama-model-section" style="display: none;">
+          <label for="ollamaModel" class="section-label">
+            <span class="label-icon">🦙</span>
+            Ollama 模型
+          </label>
+          <select id="ollamaModel" class="model-select">
+            <option value="">检测本地模型...</option>
+          </select>
+          <button id="refreshOllamaModels" class="refresh-button">🔄 刷新</button>
+        </div>
       </div>
 
       <!-- 语言设置 -->
@@ -101,7 +109,7 @@
         </div>
       </div>
 
-      <!-- 翻译模式 - 新增immersive风格 -->
+      <!-- 翻译模式 - 简化为两种模式 -->
       <div class="control-section">
         <label class="section-label">
           <span class="label-icon">✨</span>
@@ -111,8 +119,8 @@
           <label class="mode-card">
             <input type="radio" name="translateMode" value="immersive-bilingual" checked>
             <div class="mode-content">
-              <div class="mode-title">沉浸式双语</div>
-              <div class="mode-description">immersive-translate风格，原文+译文，完美阅读体验</div>
+              <div class="mode-title">双语对照</div>
+              <div class="mode-description">原文+译文同时显示，完美阅读体验</div>
               <div class="mode-preview">
                 <div class="preview-original">Original Text</div>
                 <div class="preview-translated">翻译文本</div>
@@ -121,22 +129,10 @@
           </label>
           
           <label class="mode-card">
-            <input type="radio" name="translateMode" value="side-by-side">
-            <div class="mode-content">
-              <div class="mode-title">并排对照</div>
-              <div class="mode-description">左右并排显示，对比学习最佳</div>
-              <div class="mode-preview side-by-side">
-                <div class="preview-left">Original</div>
-                <div class="preview-right">翻译</div>
-              </div>
-            </div>
-          </label>
-          
-          <label class="mode-card">
             <input type="radio" name="translateMode" value="replace">
             <div class="mode-content">
-              <div class="mode-title">替换原文</div>
-              <div class="mode-description">直接替换，鼠标悬停显示原文</div>
+              <div class="mode-title">直接翻译</div>
+              <div class="mode-description">直接替换原文，鼠标悬停显示原文</div>
               <div class="mode-preview replace">
                 <div class="preview-replaced">翻译文本</div>
               </div>
