@@ -277,6 +277,7 @@ class PopupController {
     this.handleModelSelection(this.settings.aiModel);
     this.updateModePreview(this.settings.translateMode);
     this.updatePerformanceDisplay();
+  }
 
   // 更新悬浮按钮显示状态
   async updateFloatButtonVisibility(show) {
@@ -293,7 +294,6 @@ class PopupController {
     } catch (error) {
       console.error('更新悬浮按钮状态失败:', error);
     }
-  }
   }
 
   // 更新状态指示器
