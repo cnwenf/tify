@@ -74,7 +74,7 @@ class PopupController {
 
       this.settings = {
         translateEnabled: true, // 默认启用AI翻译
-        aiModel: result.aiModel || 'openai-gpt35',
+        aiModel: result.aiModel || 'microsoft-translator',
         ollamaModel: result.ollamaModel || '',
         sourceLang: result.sourceLang || 'auto',
         targetLang: result.targetLang || 'zh',

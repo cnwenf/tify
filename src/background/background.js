@@ -263,7 +263,7 @@ class BackgroundService {
   async setDefaultSettings() {
     const defaultSettings = {
       translateEnabled: true, // 默认启用AI翻译
-      aiModel: 'openai-gpt35',
+      aiModel: 'microsoft-translator',
       sourceLang: 'auto',
       targetLang: 'zh',
       translateMode: 'bilingual',
