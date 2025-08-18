@@ -46,6 +46,7 @@ class PopupController {
       usageCount: document.getElementById('usageCount'),
       concurrencyLimit: document.getElementById('concurrencyLimit'),
       autoTranslate: document.getElementById('autoTranslate'),
+      showFloatButton: document.getElementById('showFloatButton'),
       performanceInfo: document.getElementById('performanceInfo'),
       translationSpeed: document.getElementById('translationSpeed'),
       successRate: document.getElementById('successRate'),
@@ -69,6 +70,7 @@ class PopupController {
         'usageCount',
         'concurrencyLimit',
         'autoTranslate',
+        'showFloatButton',
         'performanceData'
       ]);
 
@@ -83,7 +85,8 @@ class PopupController {
         customEndpoint: result.customEndpoint || '',
         usageCount: result.usageCount || 0,
         concurrencyLimit: result.concurrencyLimit || 5,
-        autoTranslate: result.autoTranslate || false
+        autoTranslate: result.autoTranslate || false,
+        showFloatButton: result.showFloatButton !== undefined ? result.showFloatButton : true
       };
 
       // 加载性能数据
@@ -168,6 +171,14 @@ class PopupController {
       this.saveSettings();
     });
 
+    // 悬浮按钮显示设置
+    this.elements.showFloatButton.addEventListener('change', (e) => {
+      this.settings.showFloatButton = e.target.checked;
+      this.saveSettings();
+      // 通知content script更新悬浮按钮状态
+      this.updateFloatButtonVisibility(e.target.checked);
+    });
+
     // 翻译当前页面按钮
     this.elements.translatePageBtn.addEventListener('click', () => {
       this.translateCurrentPage();
@@ -249,6 +260,7 @@ class PopupController {
     this.elements.customEndpoint.value = this.settings.customEndpoint;
     this.elements.concurrencyLimit.value = this.settings.concurrencyLimit;
     this.elements.autoTranslate.checked = this.settings.autoTranslate;
+    this.elements.showFloatButton.checked = this.settings.showFloatButton;
 
     // 设置Ollama模型
     if (this.elements.ollamaModel) {
@@ -265,6 +277,23 @@ class PopupController {
     this.handleModelSelection(this.settings.aiModel);
     this.updateModePreview(this.settings.translateMode);
     this.updatePerformanceDisplay();
+
+  // 更新悬浮按钮显示状态
+  async updateFloatButtonVisibility(show) {
+    try {
+      // 获取当前活跃的标签页
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        // 发送消息给content script
+        await chrome.tabs.sendMessage(tab.id, {
+          action: 'updateFloatButton',
+          show: show
+        });
+      }
+    } catch (error) {
+      console.error('更新悬浮按钮状态失败:', error);
+    }
+  }
   }
 
   // 更新状态指示器
