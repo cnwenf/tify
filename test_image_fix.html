@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片丢失问题测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .image-container {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .mixed-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        .mixed-content img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .mixed-content .text-content {
+            flex: 1;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🖼️ 图片丢失问题测试页面</h1>
+    <p><strong>测试目标：</strong>验证翻译插件是否会导致页面中的图片丢失</p>
+    
+    <div class="test-section">
+        <h2>📊 测试控制</h2>
+        <div id="test-status" class="status info">准备测试...</div>
+        <button onclick="startTranslation()">开始翻译测试</button>
+        <button onclick="clearTranslation()">清除翻译</button>
+        <button onclick="checkImages()">检查图片状态</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 单独图片测试</h2>
+        <p>This is a paragraph with text that should be translated. Below is an image that should remain intact after translation.</p>
+        <div class="image-container">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGY0NmU1Ii8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5UZXN0IEltYWdlIDE8L3RleHQ+Cjwvc3ZnPgo=" alt="Test Image 1">
+        </div>
+        <p>This paragraph comes after the image and should also be translated properly.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 混合内容测试</h2>
+        <div class="mixed-content">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzEwYjk4MSIvPgogIDx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+MzwvdGV4dD4KPC9zdmc+Cg==" alt="Test Image 2">
+            <div class="text-content">
+                <h3>Mixed Content Example</h3>
+                <p>This is a paragraph that contains both text and an image. The image should remain visible even after translation. This tests whether the translation process affects elements that contain both images and text.</p>
+                <p>Additional text content to ensure there's enough content to translate.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 内联图片测试</h2>
+        <p>This paragraph contains an inline image <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMSA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDMgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjZmZkNzAwIi8+Cjwvc3ZnPgo=" alt="Star" style="width: 20px; height: 20px; vertical-align: middle;"> that should remain visible after translation. This tests inline image preservation.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 图片列表测试</h2>
+        <p>Here is a list with images that should be preserved:</p>
+        <ul>
+            <li>First item with image: <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNkYzM1NDUiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPgo8cGF0aCBkPSJNMTggNkw2IDE4TTYgNkwxOCAxOCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cjwvc3ZnPgo=" alt="Error" style="width: 16px; height: 16px; vertical-align: middle;"></li>
+            <li>Second item with image: <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMxMGI5ODEiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPgo8cGF0aCBkPSJNMjAgNkw5IDEyTDQgN0w5IDE3TDIwIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo8L3N2Zz4K" alt="Success" style="width: 16px; height: 16px; vertical-align: middle;"></li>
+            <li>Third item without image for comparison</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🖼️ 表格中的图片测试</h2>
+        <p>Images in table cells should also be preserved:</p>
+        <table border="1" style="border-collapse: collapse; width: 100%;">
+            <tr>
+                <th>Description</th>
+                <th>Icon</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Task completed successfully</td>
+                <td><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMxMGI5ODEiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPgo8cGF0aCBkPSJNMjAgNkw5IDEyTDQgN0w5IDE3TDIwIDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo8L3N2Zz4K" alt="Success" style="width: 20px; height: 20px;"></td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>Task failed with errors</td>
+                <td><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNkYzM1NDUiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPgo8cGF0aCBkPSJNMTggNkw2IDE4TTYgNkwxOCAxOCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cjwvc3ZnPgo=" alt="Error" style="width: 20px; height: 20px;"></td>
+                <td>Failed</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        let originalImageCount = 0;
+        
+        // 页面加载时统计图片数量
+        window.addEventListener('load', function() {
+            originalImageCount = document.querySelectorAll('img').length;
+            updateStatus(`页面加载完成，检测到 ${originalImageCount} 张图片`);
+        });
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('test-status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function startTranslation() {
+            updateStatus('开始翻译测试...', 'info');
+            
+            // 检查扩展是否可用
+            if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+                updateStatus('翻译扩展未安装或未启用', 'error');
+                return;
+            }
+
+            // 发送翻译消息
+            chrome.runtime.sendMessage({
+                action: 'translatePage',
+                settings: {
+                    aiModel: 'microsoft-translator',
+                    sourceLang: 'auto',
+                    targetLang: 'zh',
+                    translateMode: 'immersive-bilingual'
+                }
+            }, function(response) {
+                if (chrome.runtime.lastError) {
+                    updateStatus('翻译请求失败: ' + chrome.runtime.lastError.message, 'error');
+                } else if (response && response.success) {
+                    updateStatus('翻译请求已发送，请等待完成...', 'success');
+                    
+                    // 延迟检查图片状态
+                    setTimeout(checkImages, 3000);
+                } else {
+                    updateStatus('翻译请求失败', 'error');
+                }
+            });
+        }
+
+        function clearTranslation() {
+            updateStatus('清除翻译...', 'info');
+            
+            if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+                updateStatus('翻译扩展未安装或未启用', 'error');
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'clearTranslation'
+            }, function(response) {
+                if (chrome.runtime.lastError) {
+                    updateStatus('清除翻译失败: ' + chrome.runtime.lastError.message, 'error');
+                } else {
+                    updateStatus('翻译已清除', 'success');
+                    setTimeout(checkImages, 1000);
+                }
+            });
+        }
+
+        function checkImages() {
+            const currentImages = document.querySelectorAll('img');
+            const currentCount = currentImages.length;
+            const missingCount = originalImageCount - currentCount;
+            
+            let visibleCount = 0;
+            let hiddenCount = 0;
+            
+            currentImages.forEach(img => {
+                const style = window.getComputedStyle(img);
+                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                    hiddenCount++;
+                } else {
+                    visibleCount++;
+                }
+            });
+
+            let message = `图片状态检查:\n`;
+            message += `原始图片数量: ${originalImageCount}\n`;
+            message += `当前图片数量: ${currentCount}\n`;
+            message += `可见图片数量: ${visibleCount}\n`;
+            message += `隐藏图片数量: ${hiddenCount}\n`;
+            message += `丢失图片数量: ${missingCount}`;
+
+            let type = 'success';
+            if (missingCount > 0 || hiddenCount > 0) {
+                type = 'error';
+            } else if (currentCount === originalImageCount && visibleCount === originalImageCount) {
+                type = 'success';
+                message += '\n✅ 所有图片都正常显示';
+            }
+
+            updateStatus(message, type);
+            
+            // 在控制台输出详细信息
+            console.log('图片检查详情:', {
+                originalCount: originalImageCount,
+                currentCount: currentCount,
+                visibleCount: visibleCount,
+                hiddenCount: hiddenCount,
+                missingCount: missingCount,
+                images: Array.from(currentImages).map(img => ({
+                    src: img.src,
+                    alt: img.alt,
+                    visible: window.getComputedStyle(img).display !== 'none',
+                    parent: img.parentElement ? img.parentElement.tagName : 'none'
+                }))
+            });
+        }
+    </script>
+</body>
+</html>
