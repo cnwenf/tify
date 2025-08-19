@@ -47,6 +47,7 @@ class PopupController {
       concurrencyLimit: document.getElementById('concurrencyLimit'),
       autoTranslate: document.getElementById('autoTranslate'),
       showFloatButton: document.getElementById('showFloatButton'),
+      showSelectionButton: document.getElementById('showSelectionButton'),
       performanceInfo: document.getElementById('performanceInfo'),
       translationSpeed: document.getElementById('translationSpeed'),
       successRate: document.getElementById('successRate'),
@@ -71,6 +72,7 @@ class PopupController {
         'concurrencyLimit',
         'autoTranslate',
         'showFloatButton',
+        'showSelectionButton',
         'performanceData'
       ]);
 
@@ -86,7 +88,8 @@ class PopupController {
         usageCount: result.usageCount || 0,
         concurrencyLimit: result.concurrencyLimit || 5,
         autoTranslate: result.autoTranslate || false,
-        showFloatButton: result.showFloatButton !== undefined ? result.showFloatButton : true
+        showFloatButton: result.showFloatButton !== undefined ? result.showFloatButton : true,
+        showSelectionButton: result.showSelectionButton !== undefined ? result.showSelectionButton : false
       };
 
       // 加载性能数据
@@ -179,6 +182,14 @@ class PopupController {
       this.updateFloatButtonVisibility(e.target.checked);
     });
 
+    // 划词翻译按钮显示设置
+    this.elements.showSelectionButton.addEventListener('change', (e) => {
+      this.settings.showSelectionButton = e.target.checked;
+      this.saveSettings();
+      // 通知content script更新划词翻译按钮状态
+      this.updateSelectionButtonVisibility(e.target.checked);
+    });
+
     // 翻译当前页面按钮
     this.elements.translatePageBtn.addEventListener('click', () => {
       this.translateCurrentPage();
@@ -261,6 +272,7 @@ class PopupController {
     this.elements.concurrencyLimit.value = this.settings.concurrencyLimit;
     this.elements.autoTranslate.checked = this.settings.autoTranslate;
     this.elements.showFloatButton.checked = this.settings.showFloatButton;
+    this.elements.showSelectionButton.checked = this.settings.showSelectionButton;
 
     // 设置Ollama模型
     if (this.elements.ollamaModel) {
@@ -277,6 +289,9 @@ class PopupController {
     this.handleModelSelection(this.settings.aiModel);
     this.updateModePreview(this.settings.translateMode);
     this.updatePerformanceDisplay();
+    
+    // 初始化时同步设置到content script
+    this.syncSettingsToContentScript();
   }
 
   // 更新悬浮按钮显示状态
@@ -293,6 +308,45 @@ class PopupController {
       }
     } catch (error) {
       console.error('更新悬浮按钮状态失败:', error);
+    }
+  }
+
+  async updateSelectionButtonVisibility(show) {
+    try {
+      // 获取当前活跃的标签页
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        // 发送消息给content script
+        await chrome.tabs.sendMessage(tab.id, {
+          action: 'updateSelectionButton',
+          show: show
+        });
+      }
+    } catch (error) {
+      console.error('更新划词翻译按钮状态失败:', error);
+    }
+  }
+
+  // 同步设置到content script
+  async syncSettingsToContentScript() {
+    try {
+      // 获取当前活跃的标签页
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        // 同步悬浮按钮设置
+        await chrome.tabs.sendMessage(tab.id, {
+          action: 'updateFloatButton',
+          show: this.settings.showFloatButton
+        });
+        
+        // 同步划词翻译按钮设置
+        await chrome.tabs.sendMessage(tab.id, {
+          action: 'updateSelectionButton',
+          show: this.settings.showSelectionButton
+        });
+      }
+    } catch (error) {
+      console.error('同步设置到content script失败:', error);
     }
   }
 
