@@ -180,7 +180,8 @@ class TranslationController {
           aiModel: 'microsoft-translator',
           sourceLang: 'auto',
           targetLang: 'zh',
-          translateMode: 'immersive-bilingual'
+          translateMode: 'immersive-bilingual',
+          showSelectionButton: false // 默认关闭划词翻译按钮
         };
         return;
       }
@@ -194,7 +195,8 @@ class TranslationController {
         'apiKey',
         'customEndpoint',
         'concurrencyLimit',
-        'showFloatButton'
+        'showFloatButton',
+        'showSelectionButton'
       ]);
 
       this.settings = {
@@ -206,7 +208,8 @@ class TranslationController {
         apiKey: result.apiKey || '',
         customEndpoint: result.customEndpoint || '',
         concurrencyLimit: result.concurrencyLimit || 5,
-        showFloatButton: result.showFloatButton !== undefined ? result.showFloatButton : true // 默认显示悬浮窗
+        showFloatButton: result.showFloatButton !== undefined ? result.showFloatButton : true, // 默认显示悬浮窗
+        showSelectionButton: result.showSelectionButton !== undefined ? result.showSelectionButton : false // 默认关闭划词翻译按钮
       };
       
       // 更新并发限制
@@ -219,7 +222,8 @@ class TranslationController {
         aiModel: 'microsoft-translator',
         sourceLang: 'auto',
         targetLang: 'zh',
-        translateMode: 'immersive-bilingual'
+        translateMode: 'immersive-bilingual',
+        showSelectionButton: false // 默认关闭划词翻译按钮
       };
     }
   }
@@ -233,6 +237,7 @@ class TranslationController {
         console.log('Tidy: 开始翻译页面');
         this.translatePage(message.settings);
         sendResponse({ success: true });
+        break;
       case 'updateFloatButton':
         console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
         if (message.show) {
@@ -242,20 +247,19 @@ class TranslationController {
         }
         sendResponse({ success: true });
         break;
+      case 'updateSelectionButton':
+        console.log('Tidy: 更新划词翻译按钮显示状态:', message.show);
+        this.settings.showSelectionButton = message.show;
+        // 如果当前禁用了划词翻译按钮，则隐藏现有按钮
+        if (!message.show) {
+          this.hideSelectionButton();
+        }
+        sendResponse({ success: true });
         break;
       case 'clearTranslation':
         console.log('Tidy: 清除翻译');
         this.clearTranslation();
         sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
         break;
       case 'settingsChanged':
         console.log('Tidy: 设置已更新');
@@ -266,75 +270,21 @@ class TranslationController {
         }
         this.updateFloatButton();
         sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
-        break;
         break;
       case 'toggleTranslation':
         console.log('Tidy: 切换翻译状态');
         this.toggleTranslation();
         sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
         break;
       case 'showTranslationResult':
         console.log('Tidy: 显示翻译结果');
         // 处理右键菜单翻译结果
         this.showTranslationPopup(message.originalText, message.translation);
         sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
         break;
       case 'showNotification':
         this.showNotification(message.message, message.type || 'info');
         sendResponse({ success: true });
-      case 'updateFloatButton':
-        console.log('Tidy: 更新悬浮按钮显示状态:', message.show);
-        if (message.show) {
-          this.showFloatButton();
-        } else {
-          this.hideFloatButton();
-        }
-        sendResponse({ success: true });
-        break;
         break;
       default:
         console.log('Tidy: 未知消息类型:', message.action);
@@ -507,7 +457,10 @@ class TranslationController {
 
   // 显示选择翻译按钮
   showSelectionButton(selection) {
-    // AI翻译始终启用，移除检查
+    // 检查是否启用划词翻译按钮
+    if (!this.settings.showSelectionButton) {
+      return;
+    }
 
     this.hideSelectionButton();
 
