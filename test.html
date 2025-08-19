@@ -1,237 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tidy Test Page</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
-      color: #333;
-    }
-    
-    .header {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      color: white;
-      padding: 30px;
-      border-radius: 12px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    
-    .section {
-      margin-bottom: 30px;
-      padding: 20px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      background: #f9fafb;
-    }
-    
-    .section h2 {
-      color: #1f2937;
-      margin-bottom: 15px;
-    }
-    
-    .text-block {
-      margin-bottom: 15px;
-      padding: 15px;
-      background: white;
-      border-radius: 6px;
-      border-left: 4px solid #4f46e5;
-    }
-    
-    .instructions {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    
-    .instructions h3 {
-      color: #92400e;
-      margin-bottom: 10px;
-    }
-    
-    .instructions ol {
-      color: #92400e;
-      margin-left: 20px;
-    }
-    
-    .test-buttons {
-      display: flex;
-      gap: 10px;
-      margin: 20px 0;
-      flex-wrap: wrap;
-    }
-    
-    .test-btn {
-      padding: 10px 20px;
-      background: #4f46e5;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-    
-    .test-btn:hover {
-      background: #4338ca;
-    }
-    
-    .code-block {
-      background: #1f2937;
-      color: #f3f4f6;
-      padding: 15px;
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      overflow-x: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片翻译保护器测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h2 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        
+        .warning {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #ff9800;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🌐 Tidy Test Page</h1>
-    <p>Use this page to test the AI translation extension functionality</p>
-  </div>
-
-  <div class="instructions">
-    <h3>📋 Testing Instructions</h3>
-    <ol>
-      <li>Make sure the Tidy extension is installed and enabled</li>
-      <li>Configure your API key in the extension popup (click the extension icon)</li>
-      <li>Enable translation in the popup</li>
-      <li>Try the following test methods:</li>
-      <ul>
-        <li><strong>Page Translation:</strong> Click "翻译当前页面" in the popup</li>
-        <li><strong>Selection Translation:</strong> Select any text below and click the translation button that appears</li>
-        <li><strong>Right-click Menu:</strong> Select text and use "翻译选中文本" from right-click menu</li>
-        <li><strong>Keyboard Shortcuts:</strong> Alt+S to toggle translation, Alt+T to translate page, Alt+R to clear translation</li>
-        <li><strong>Float Button:</strong> Click the floating button on the right side of the page</li>
-      </ul>
-    </ol>
-  </div>
-
-  <div class="section">
-    <h2>🇺🇸 English Content</h2>
+    <h1>🖼️ Image Translation Protector Test Page</h1>
     
-    <div class="text-block">
-      <h3>Welcome to AI Translation</h3>
-      <p>This is a test paragraph in English. Artificial Intelligence has revolutionized the way we communicate across language barriers. Modern machine learning models can understand context, nuance, and cultural references, making translations more accurate and natural than ever before.</p>
+    <div class="instructions">
+        <h2>测试说明 (Test Instructions)</h2>
+        <ol>
+            <li>确保已安装图片翻译保护器扩展或用户脚本</li>
+            <li>使用Chrome的翻译功能翻译此页面</li>
+            <li>观察图片是否在翻译后仍然显示</li>
+            <li>检查扩展的状态面板或用户脚本控制面板</li>
+        </ol>
     </div>
-    
-    <div class="text-block">
-      <h3>Technology Overview</h3>
-      <p>The Tidy extension leverages state-of-the-art language models like GPT-4, Claude, and Gemini to provide high-quality translations. These models are trained on vast amounts of multilingual text data and can handle complex linguistic structures, idioms, and technical terminology.</p>
+
+    <div class="test-section">
+        <h3>Test Case 1: M3-Bench Example (Original Problem)</h3>
+        <p>We introduce M3-Bench, an long video question answering dataset designed to evaluate the capability of multimodal agents to perform reasoning over long-term memory. Each instance in M3-Bench comprises a long video simulating the perceptual input of an agent, along with a series of open-ended question-answer pairs. The dataset is organized into two subsets:</p>
+        
+        <ol>
+            <li>M3-Bench-robot, which contains 100 real-world videos recorded from a robot's first-person perspective,</li>
+            <li>M3-Bench-web, which includes 920 web-sourced videos covering a wider variety of content and scenarios.</li>
+        </ol>
+        
+        <p>
+            <a target="_blank" rel="noopener noreferrer" href="https://via.placeholder.com/600x300/4285f4/ffffff?text=M3-Bench+Example">
+                <img src="https://via.placeholder.com/600x300/4285f4/ffffff?text=M3-Bench+Example" alt="architecture" style="max-width: 100%;">
+            </a><br>
+            <a href="https://www.youtube.com/watch?v=example1" rel="nofollow">link1</a>, 
+            <a href="https://www.youtube.com/watch?v=example2" rel="nofollow">link2</a>, 
+            <a href="https://www.youtube.com/watch?v=example3" rel="nofollow">link3</a><br>
+            Examples from M3-Bench. M3-Bench-robot features long videos from realistic robotic work scenarios, while M3-Bench-web expands the video diversity to support broader evaluation. The question-answering tasks are designed to assess a multimodal agent's ability to construct consistent and reliable long-term memory, as well as to reason effectively over that memory.
+        </p>
     </div>
-    
-    <div class="text-block">
-      <h3>Key Features</h3>
-      <ul>
-        <li>Real-time translation with AI models</li>
-        <li>Bilingual display mode for better comprehension</li>
-        <li>Context-aware translation quality</li>
-        <li>Support for multiple languages</li>
-        <li>Seamless integration with web browsing</li>
-      </ul>
+
+    <div class="test-section">
+        <h3>Test Case 2: Multiple Images with Different Contexts</h3>
+        <p>This section contains multiple images to test the restoration capability:</p>
+        
+        <p>Here's an example of system architecture:</p>
+        <img src="https://via.placeholder.com/400x200/34a853/ffffff?text=System+Architecture" alt="system architecture diagram" style="display: block; margin: 10px auto;">
+        
+        <p>The following figure shows the data flow:</p>
+        <a href="https://example.com/dataflow">
+            <img src="https://via.placeholder.com/500x250/ea4335/ffffff?text=Data+Flow+Diagram" alt="data flow" style="max-width: 100%;">
+        </a>
+        
+        <p>Finally, here's the user interface mockup:</p>
+        <img src="https://via.placeholder.com/350x400/fbbc04/333333?text=UI+Mockup" alt="user interface" title="User Interface Design">
     </div>
-  </div>
 
-  <div class="section">
-    <h2>🇯🇵 Japanese Content (日本語)</h2>
-    
-    <div class="text-block">
-      <h3>人工知能翻訳について</h3>
-      <p>これは日本語のテスト段落です。人工知能は言語の壁を越えてコミュニケーションを取る方法を革命的に変えました。最新の機械学習モデルは文脈、ニュアンス、文化的な参照を理解し、これまで以上に正確で自然な翻訳を可能にしています。</p>
+    <div class="test-section">
+        <h3>Test Case 3: Images in Lists and Tables</h3>
+        <ul>
+            <li>First item with image: <img src="https://via.placeholder.com/100x50/9c27b0/ffffff?text=Item+1" alt="item 1" style="vertical-align: middle;"></li>
+            <li>Second item: Regular text without image</li>
+            <li>Third item with linked image: 
+                <a href="https://example.com/item3">
+                    <img src="https://via.placeholder.com/100x50/ff5722/ffffff?text=Item+3" alt="item 3" style="vertical-align: middle;">
+                </a>
+            </li>
+        </ul>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tr>
+                <th style="border: 1px solid #ddd; padding: 8px;">Feature</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Image</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Description</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">Feature A</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                    <img src="https://via.placeholder.com/80x60/607d8b/ffffff?text=A" alt="feature a">
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">This is feature A with an image</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">Feature B</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                    <a href="https://example.com/featureb">
+                        <img src="https://via.placeholder.com/80x60/795548/ffffff?text=B" alt="feature b">
+                    </a>
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">This is feature B with a linked image</td>
+            </tr>
+        </table>
     </div>
-    
-    <div class="text-block">
-      <h3>技術的特徴</h3>
-      <p>このAI言語翻訳拡張機能は、GPT-4、Claude、Geminiなどの最先端の言語モデルを活用して高品質な翻訳を提供します。これらのモデルは膨大な多言語テキストデータで訓練されており、複雑な言語構造、慣用句、専門用語を処理できます。</p>
+
+    <div class="warning">
+        <strong>⚠️ 注意：</strong>如果翻译后图片消失，说明需要图片翻译保护器。如果图片正常显示，说明保护器工作正常！
+        <br>
+        <strong>⚠️ Note:</strong> If images disappear after translation, you need the Image Translation Protector. If images display normally, the protector is working correctly!
     </div>
-  </div>
 
-  <div class="section">
-    <h2>🇫🇷 French Content (Français)</h2>
-    
-    <div class="text-block">
-      <h3>Intelligence Artificielle et Traduction</h3>
-      <p>Ceci est un paragraphe de test en français. L'intelligence artificielle a révolutionné la façon dont nous communiquons à travers les barrières linguistiques. Les modèles d'apprentissage automatique modernes peuvent comprendre le contexte, les nuances et les références culturelles, rendant les traductions plus précises et naturelles que jamais.</p>
+    <div class="test-section">
+        <h3>Expected Behavior</h3>
+        <p><strong>Without Protection:</strong> After translation, all images will disappear and only text content will remain.</p>
+        <p><strong>With Protection:</strong> After translation, images will be automatically restored in their correct positions, maintaining their original links and styling.</p>
+        
+        <h4>Verification Steps:</h4>
+        <ol>
+            <li>Count the number of images on this page before translation</li>
+            <li>Use Chrome's translate feature (right-click → "Translate to [your language]")</li>
+            <li>After translation completes, verify all images are still visible</li>
+            <li>Check that linked images still have their links</li>
+            <li>Verify image styling and positioning is preserved</li>
+        </ol>
     </div>
-  </div>
-
-  <div class="section">
-    <h2>🇪🇸 Spanish Content (Español)</h2>
-    
-    <div class="text-block">
-      <h3>Inteligencia Artificial y Traducción</h3>
-      <p>Este es un párrafo de prueba en español. La inteligencia artificial ha revolucionado la forma en que nos comunicamos a través de las barreras del idioma. Los modelos modernos de aprendizaje automático pueden entender el contexto, los matices y las referencias culturales, haciendo que las traducciones sean más precisas y naturales que nunca.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>🔧 Technical Test</h2>
-    
-    <div class="text-block">
-      <h3>API Configuration Test</h3>
-      <p>To test the API configuration, make sure you have entered a valid API key for one of the supported AI models. The extension supports OpenAI GPT models, Claude 3, and Google Gemini Pro.</p>
-    </div>
-    
-    <div class="text-block">
-      <h3>Code Example</h3>
-      <div class="code-block">
-function translateText(text, sourceLang, targetLang) {
-  return fetch('/api/translate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, sourceLang, targetLang })
-  }).then(response => response.json());
-}
-      </div>
-    </div>
-  </div>
-
-  <div class="test-buttons">
-    <button class="test-btn" onclick="testSelection()">Test Selection</button>
-    <button class="test-btn" onclick="testNotification()">Test Notification</button>
-    <button class="test-btn" onclick="showExtensionStatus()">Check Extension Status</button>
-  </div>
-
-  <script>
-    function testSelection() {
-      // Select the first paragraph for testing
-      const firstParagraph = document.querySelector('.text-block p');
-      if (firstParagraph) {
-        const range = document.createRange();
-        range.selectNode(firstParagraph);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        alert('Text selected! Now try using the translation features.');
-      }
-    }
-
-    function testNotification() {
-      alert('This is a test notification. The actual extension will show styled notifications.');
-    }
-
-    function showExtensionStatus() {
-      if (typeof chrome !== 'undefined' && chrome.runtime) {
-        alert('Chrome extension API is available!');
-      } else {
-        alert('Chrome extension API not detected. Make sure the extension is installed.');
-      }
-    }
-
-    // Log page load for debugging
-    console.log('Tidy test page loaded');
-    console.log('Page contains translatable elements:', document.querySelectorAll('p, h1, h2, h3, li').length);
-  </script>
 </body>
 </html>

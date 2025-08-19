@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片翻译保护器</title>
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            color: #1a73e8;
+            margin: 0 0 5px 0;
+        }
+        
+        .header p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        
+        .status {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .indicator.active {
+            background: #34a853;
+        }
+        
+        .indicator.inactive {
+            background: #ea4335;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1557b0;
+        }
+        
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8eaed;
+        }
+        
+        .tips {
+            background: #e8f0fe;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #1a73e8;
+            line-height: 1.4;
+        }
+        
+        .tips strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖼️ 图片翻译保护器</h1>
+        <p>防止Chrome翻译时图片丢失</p>
+    </div>
+    
+    <div class="status">
+        <div class="status-item">
+            <span class="status-label">
+                <span class="indicator" id="protectionIndicator"></span>
+                保护状态
+            </span>
+            <span class="status-value" id="protectionStatus">检测中...</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">已保存图片</span>
+            <span class="status-value" id="savedImages">0</span>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-label">已恢复图片</span>
+            <span class="status-value" id="restoredImages">0</span>
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <button class="btn btn-primary" id="manualRestore">手动恢复</button>
+        <button class="btn btn-secondary" id="refreshImages">刷新扫描</button>
+    </div>
+    
+    <div class="tips">
+        <strong>使用说明：</strong>
+        1. 扩展会自动监测翻译活动<br>
+        2. 在翻译前保存页面图片信息<br>
+        3. 翻译后自动恢复丢失的图片<br>
+        4. 如需手动操作，点击上方按钮
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
