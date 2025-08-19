@@ -154,10 +154,8 @@ class BackgroundService {
     try {
       const settings = await this.getSettings();
       
-      // 检查API密钥是否配置 (Microsoft Translator 和 Ollama 不需要)
-      if (!settings.apiKey && 
-          settings.aiModel !== 'microsoft-translator' && 
-          settings.aiModel !== 'ollama') {
+      // 检查API密钥是否配置 (只有 Ollama 不需要)
+      if (!settings.apiKey && settings.aiModel !== 'ollama') {
         // 弹出设置页面，提示用户配置API密钥
         chrome.tabs.create({
           url: chrome.runtime.getURL('src/popup/popup.html')
@@ -324,7 +322,7 @@ class BackgroundService {
 class TranslationService {
   constructor() {
     this.apiEndpoints = {
-      'microsoft-translator': 'https://api.mymemory.translated.net/get',
+      'microsoft-translator': 'https://api.cognitive.microsofttranslator.com/translate',
       'ollama': 'http://localhost:11434/api/generate',
       'openai-gpt4': 'https://api.openai.com/v1/chat/completions',
       'openai-gpt35': 'https://api.openai.com/v1/chat/completions',
@@ -340,10 +338,8 @@ class TranslationService {
       throw new Error('翻译文本不能为空');
     }
 
-    // Microsoft Translator 和 Ollama 不需要API密钥
-    if (!settings.apiKey && 
-        settings.aiModel !== 'microsoft-translator' && 
-        settings.aiModel !== 'ollama') {
+    // 只有 Ollama 不需要API密钥
+    if (!settings.apiKey && settings.aiModel !== 'ollama') {
       throw new Error('请先配置API密钥');
     }
 
@@ -612,17 +608,22 @@ ${text}`;
     throw new Error(`Qwen3 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
   }
 
-  // 使用微软翻译 (免费版本，使用MyMemory API)
+  // 使用微软Bing翻译服务 (官方Microsoft Translator API)
   async translateWithMicrosoft(text, sourceLang, targetLang, settings) {
-    // 使用免费的MyMemory翻译API作为微软翻译的替代
-    const endpoint = 'https://api.mymemory.translated.net/get';
+    // 使用官方Microsoft Translator API
+    const endpoint = 'https://api.cognitive.microsofttranslator.com/translate';
     const maxRetries = 3;
     let lastError;
     
-    // 语言代码映射
+    // 检查是否配置了API密钥
+    if (!settings.apiKey) {
+      throw new Error('请先配置Microsoft Translator API密钥。您可以在Azure门户中创建Translator资源获取密钥。');
+    }
+    
+    // 语言代码映射 (Microsoft Translator API格式)
     const langMap = {
-      'auto': '', 
-      'zh': 'zh-CN',
+      'auto': null, // 自动检测时不传from参数
+      'zh': 'zh-Hans', // 简体中文
       'en': 'en',
       'ja': 'ja',
       'ko': 'ko',
@@ -635,82 +636,87 @@ ${text}`;
       'ar': 'ar'
     };
 
-    const fromLang = langMap[sourceLang] || 'en';
-    const toLang = langMap[targetLang] || 'zh-CN';
+    const fromLang = langMap[sourceLang];
+    const toLang = langMap[targetLang] || 'zh-Hans';
 
+    // 构建查询参数
     const params = new URLSearchParams({
-      'q': text,
-      'langpair': fromLang === '' ? `${toLang}` : `${fromLang}|${toLang}`
+      'api-version': '3.0',
+      'to': toLang
     });
+    
+    // 如果不是自动检测，添加from参数
+    if (fromLang) {
+      params.append('from', fromLang);
+    }
 
     // 实现重试机制处理频率限制
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Microsoft Translator 翻译尝试 ${attempt + 1}/${maxRetries + 1}`);
+        console.log(`Microsoft Bing Translator 翻译尝试 ${attempt + 1}/${maxRetries + 1}`);
         
         const response = await fetch(`${endpoint}?${params}`, {
-          method: 'GET',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': settings.apiKey,
             'User-Agent': 'Chrome-Extension-Translator/2.0'
-          }
+          },
+          body: JSON.stringify([{
+            'text': text
+          }])
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Microsoft Translator API 错误响应:', errorText);
+          console.error('Microsoft Bing Translator API 错误响应:', errorText);
           
           // 处理频率限制错误 (429)
           if (response.status === 429) {
             if (attempt < maxRetries) {
-              console.log('Microsoft Translator 频率限制，等待10秒后重试...');
-              await new Promise(resolve => setTimeout(resolve, 10000)); // 等待10秒
+              console.log('Microsoft Bing Translator 频率限制，等待10秒后重试...');
+              await new Promise(resolve => setTimeout(resolve, 10000));
               continue;
             }
-            throw new Error(`API调用频率超限，请稍后重试。MyMemory免费版本每天限制1000次请求，请降低翻译频率或稍后重试。`);
+            throw new Error(`API调用频率超限，请稍后重试`);
+          } else if (response.status === 401) {
+            throw new Error(`API密钥无效，请检查Microsoft Translator API密钥配置`);
           } else if (response.status === 403) {
-            throw new Error(`翻译服务访问被拒绝 (403)，可能是IP被限制或超过日配额`);
+            throw new Error(`API访问被拒绝，请检查Microsoft Translator API权限和余额`);
           } else if (response.status >= 500 && attempt < maxRetries) {
             // 服务器错误，可以重试
-            console.log('Microsoft Translator 服务器错误，等待5秒后重试...');
+            console.log('Microsoft Bing Translator 服务器错误，等待5秒后重试...');
             await new Promise(resolve => setTimeout(resolve, 5000));
             continue;
           } else {
-            throw new Error(`Translation API error: ${response.status} - ${errorText}`);
+            throw new Error(`Microsoft Bing Translator API error: ${response.status} - ${errorText}`);
           }
         }
 
         const data = await response.json();
-        console.log('Microsoft Translator API 响应数据:', data);
+        console.log('Microsoft Bing Translator API 响应数据:', data);
         
-        if (data && data.responseData && data.responseData.translatedText) {
-          const translation = data.responseData.translatedText;
+        // 解析Microsoft Translator API v3.0响应格式
+        if (data && Array.isArray(data) && data[0] && data[0].translations && data[0].translations[0]) {
+          const translation = data[0].translations[0].text;
           if (translation && translation.trim()) {
-            console.log('Microsoft Translator 翻译成功:', translation);
-            return translation;
+            console.log('Microsoft Bing Translator 翻译成功:', translation);
+            return translation.trim();
           } else {
-            throw new Error('翻译服务返回空结果');
+            throw new Error('Microsoft Translator API返回空翻译结果');
           }
-        } else if (data && data.responseStatus === 429) {
-          // MyMemory API 特殊的频率限制响应
-          if (attempt < maxRetries) {
-            console.log('MyMemory API 频率限制，等待15秒后重试...');
-            await new Promise(resolve => setTimeout(resolve, 15000));
-            continue;
-          }
-          throw new Error('API调用频率超限，请稍后重试。MyMemory免费版本每天限制1000次请求。');
         } else {
-          console.error('Microsoft Translator 意外的响应格式:', data);
-          throw new Error('翻译服务返回无效响应');
+          console.error('Microsoft Bing Translator 意外的响应格式:', data);
+          throw new Error('Microsoft Translator API返回无效响应格式');
         }
         
       } catch (error) {
         lastError = error;
-        console.error(`Microsoft Translator 翻译尝试 ${attempt + 1} 失败:`, error.message);
+        console.error(`Microsoft Bing Translator 翻译尝试 ${attempt + 1} 失败:`, error.message);
         
         // 如果是网络错误且还有重试机会，则继续重试
         if ((error.name === 'TypeError' || error.message.includes('fetch')) && attempt < maxRetries) {
-          console.log('Microsoft Translator 网络错误，等待3秒后重试...');
+          console.log('Microsoft Bing Translator 网络错误，等待3秒后重试...');
           await new Promise(resolve => setTimeout(resolve, 3000));
           continue;
         }
@@ -723,7 +729,7 @@ ${text}`;
     }
 
     // 所有重试都失败了
-    throw new Error(`Microsoft Translator 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
+    throw new Error(`Microsoft Bing Translator 翻译失败，已重试 ${maxRetries} 次: ${lastError.message}`);
   }
 
   // 使用Ollama翻译
