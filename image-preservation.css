@@ -1,0 +1,92 @@
+/**
+ * 图片保护样式 - 确保图片在翻译过程中保持可见性
+ * Image Preservation Styles - Ensure images remain visible during translation
+ */
+
+/* 保护图片元素的基本样式 */
+[data-preserve-image="true"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: 100% !important;
+}
+
+/* 保护图片容器 */
+[data-preserve-container="true"] {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* 恢复的图片样式 */
+[data-restored-image="true"] {
+    display: block !important;
+    margin: 10px 0 !important;
+    max-width: 100% !important;
+}
+
+/* 翻译内容中的图片容器 */
+.ai-translation-immersive img,
+[data-ai-translated="true"] img {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 10px 0 !important;
+}
+
+/* 确保链接在翻译后仍然可见 */
+.ai-translation-immersive a,
+[data-ai-translated="true"] a {
+    display: inline !important;
+    color: #0066cc !important;
+    text-decoration: underline !important;
+}
+
+/* 图片链接特殊处理 */
+a[href*=".png"],
+a[href*=".jpg"],
+a[href*=".jpeg"],
+a[href*=".gif"],
+a[href*=".svg"] {
+    display: block !important;
+    margin: 10px 0 !important;
+}
+
+/* 防止图片在翻译结构中被隐藏 */
+.ai-translation-immersive a[href*=".png"] img,
+.ai-translation-immersive a[href*=".jpg"] img,
+.ai-translation-immersive a[href*=".jpeg"] img,
+.ai-translation-immersive a[href*=".gif"] img,
+.ai-translation-immersive a[href*=".svg"] img {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* 翻译容器中的图片恢复区域 */
+.image-restoration-area {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.image-restoration-area img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* 调试样式（可选） */
+.debug-image-protection [data-preserve-image="true"] {
+    border: 2px solid green !important;
+}
+
+.debug-image-protection [data-restored-image="true"] {
+    border: 2px solid blue !important;
+}
+
+.debug-image-protection [data-preserve-container="true"] {
+    background-color: rgba(255, 255, 0, 0.1) !important;
+}

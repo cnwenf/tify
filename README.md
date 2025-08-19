@@ -1,383 +1,210 @@
-# Tidy Browser Extension
+# 网页翻译图片丢失问题解决方案
 
-## 产品概述
+## 问题描述
 
-Tidy 是一款基于人工智能的浏览器翻译插件，旨在为用户提供沉浸式的双语阅读体验，提升信息获取效率。该插件支持多种翻译场景，包括网页翻译、PDF文档翻译、图片翻译、视频字幕翻译等。
+在使用网页翻译功能时，图片元素经常会丢失。这是因为翻译工具会重新组织DOM结构，将原本包含图片的HTML段落包装在翻译结构中，导致图片元素被移除或隐藏。
+
+### 问题示例
+
+**翻译前：**
+```html
+<p dir="auto">
+    <a target="_blank" rel="noopener noreferrer" href="/path/to/image.png">
+        <img src="/path/to/image.png" alt="description" style="max-width: 100%;">
+    </a>
+    <br>
+    Examples from M3-Bench...
+</p>
+```
+
+**翻译后：**
+```html
+<p dir="auto" data-ai-translated="true">
+    <div class="ai-translation-immersive">
+        <div class="original-text">Examples from M3-Bench...</div>
+        <div class="translated-text">来自M3-Bench的示例...</div>
+    </div>
+</p>
+<!-- 图片丢失！ -->
+```
+
+## 解决方案
+
+本解决方案包含三个核心文件：
+
+1. **`image-preservation-fix.js`** - 主要的JavaScript保护机制
+2. **`image-preservation.css`** - 配套的CSS样式
+3. **`example-usage.html`** - 使用示例和演示
 
 ## 核心功能
 
-### 1. 网页翻译
-- **智能翻译**: 自动识别网页内容区域，提供精准的双语对照翻译
-- **保持排版**: 翻译过程中保持原网页的布局和样式
-- **多种触发方式**:
-  - 浏览器插件按钮
-  - 网页右侧快捷图标
-  - 右键菜单翻译
-  - 快捷键操作 (Alt+S: 翻译/切换原文, Alt+T: 全页翻译, Alt+R: 清除翻译)
+### 1. 图片元素保护
+- 自动识别页面中的所有图片元素
+- 为图片添加保护标记和数据备份
+- 监听DOM变化，检测图片被移除的情况
 
-### 2. PDF文档翻译
-- **免费版**: 支持标准PDF文档翻译
-- **Pro版**: 支持扫描版PDF、公式识别、多栏内容重新排版
-- **BabelDOC**: 新一代智能PDF翻译工具，采用排版保持技术
-- **支持格式**: PDF, ePub, Mobi等电子书格式
+### 2. 实时恢复机制
+- 使用MutationObserver监听DOM变化
+- 检测翻译结构的添加
+- 在合适的位置自动恢复丢失的图片
 
-### 3. 视频字幕翻译
-- **YouTube双语字幕**: 自动为YouTube视频添加双语字幕
-- **在线会议翻译**: 支持Zoom、Google Meet、Microsoft Teams等平台
-- **字幕文件翻译**: 支持.srt、.ass等格式字幕文件
+### 3. 智能插入点识别
+- 分析翻译后的内容结构
+- 根据上下文找到最佳的图片插入位置
+- 确保图片在语义上正确的位置显示
 
-### 4. 图片翻译 (Beta)
-- **免费版**: 基于浏览器OCR技术，支持Chrome和Edge
-- **Pro版**: 服务端AI识别，支持多种语言
-- **触发方式**: 右键菜单、鼠标悬停快捷键
+## 使用方法
 
-### 5. 漫画翻译 (Beta)
-- **智能识别**: 自动识别漫画网站，提供翻译按钮
-- **支持平台**: Pixiv、MANGA Plus、MangaDex等主流漫画网站
+### 方法一：直接引入（推荐）
 
-### 6. 电子书阅读
-- **在线阅读**: 支持Epub、Mobi等格式电子书
-- **双语导出**: 生成双语对照的电子书文件
-
-## 📥 下载安装
-
-### 方式1: 直接下载（推荐）
-
-#### 下载链接
-> ✅ **最新构建**: v1.0.0 - 已完成构建和验证，可直接使用
-
-- **开发版本**: [下载 extension-dev 文件夹](./build/dist/extension-dev/) - 用于开发者模式加载
-- **打包版本**: [下载 tidy-v1.0.0.zip](./build/dist/tidy-v1.0.0.zip) - 22KB，用于Chrome Web Store发布
-
-#### 安装步骤
-1. **开发者模式安装**（推荐用于测试）
-   - 下载并解压 `extension-dev` 文件夹
-   - 打开 Chrome 浏览器，访问 `chrome://extensions/`
-   - 开启右上角的 **"开发者模式"**
-   - 点击 **"加载已解压的扩展程序"**
-   - 选择解压后的 `extension-dev` 文件夹
-   - 扩展将立即加载并可用
-
-2. **Chrome Web Store 发布版**
-   - 下载 `tidy-v1.0.0.zip` 文件
-   - 用于上传到 Chrome Web Store 或本地安装
-
-### 方式2: 从源码构建
-
-## 构建和部署
-
-### 快速开始
-
-#### 前置要求
-- macOS 操作系统
-- Bash shell (macOS 自带)
-- zip 命令 (macOS 自带)
-- Chrome 浏览器
-
-#### 一键构建
-```bash
-# 克隆项目
-git clone <repository-url>
-cd tify
-
-# 运行构建脚本
-./build.sh
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="image-preservation.css">
+</head>
+<body>
+    <!-- 你的内容 -->
+    
+    <script src="image-preservation-fix.js"></script>
+</body>
+</html>
 ```
 
-#### 构建选项
-```bash
-# 显示帮助信息
-./build.sh --help
+### 方法二：手动初始化
 
-# 清理构建文件
-./build.sh --clean
+```javascript
+// 创建保护管理器实例
+const imagePreservation = new ImagePreservationManager();
 
-# 详细输出模式
-./build.sh --verbose
+// 初始化保护机制
+imagePreservation.init();
+
+// 如果需要，可以手动触发检查
+imagePreservation.checkAndRestoreImages();
 ```
 
-### 构建输出
+## 高级配置
 
-构建脚本会生成以下文件：
+### 自定义保护规则
 
-```
-build/
-└── dist/
-    ├── tidy-v1.0.0.zip    # 用于Chrome Web Store
-    └── extension-dev/                        # 用于开发者模式
-        ├── manifest.json
-        └── src/
-            ├── background/
-            ├── content/
-            ├── popup/
-            ├── assets/
-            └── welcome/
-```
+```javascript
+const imagePreservation = new ImagePreservationManager();
 
-### 安装方法
+// 自定义图片选择器
+imagePreservation.customImageSelectors = [
+    'img[src*="specific-pattern"]',
+    '.custom-image-class img'
+];
 
-#### 方式1: 开发者模式安装（推荐用于测试）
+// 自定义插入点识别
+imagePreservation.customInsertionRules = [
+    { pattern: /特定文本模式/, position: 'before' }
+];
 
-1. 打开 Chrome 浏览器
-2. 在地址栏输入 `chrome://extensions/`
-3. 开启右上角的 **"开发者模式"**
-4. 点击 **"加载已解压的扩展程序"**
-5. 选择 `build/dist/extension-dev/` 文件夹
-6. 扩展将立即加载并可用
-
-#### 方式2: Chrome Web Store 发布
-
-1. 访问 [Chrome 开发者控制台](https://chrome.google.com/webstore/devconsole/)
-2. 登录你的 Google 开发者账户
-3. 点击 **"添加新项"**
-4. 上传 `build/dist/tidy-v1.0.0.zip` 文件
-5. 按照指引完成发布流程
-
-### 构建脚本功能
-
-`build.sh` 脚本提供了以下功能：
-
-- ✅ **自动版本检测**: 从 `manifest.json` 读取版本号
-- ✅ **智能文件过滤**: 自动排除开发文件和临时文件
-- ✅ **格式验证**: 验证 `manifest.json` 格式正确性
-- ✅ **双重输出**: 同时生成开发版本和发布版本
-- ✅ **彩色日志**: 清晰的构建过程显示
-- ✅ **错误处理**: 完善的错误检查和提示
-- ✅ **自动清理**: 构建完成后自动清理临时文件
-
-### 文件结构说明
-
-```
-项目根目录/
-├── manifest.json           # 扩展配置文件
-├── build.sh               # 构建脚本
-├── src/                   # 源代码目录
-│   ├── background/        # 后台脚本
-│   ├── content/          # 内容脚本
-│   ├── popup/            # 弹出窗口
-│   ├── assets/           # 静态资源
-│   └── welcome/          # 欢迎页面
-├── build/                # 构建输出 (自动生成)
-└── README.md             # 项目说明
+imagePreservation.init();
 ```
 
-### 开发调试
+### 调试模式
 
-#### 本地开发
-1. 使用开发者模式安装扩展
-2. 修改源代码后，在扩展管理页面点击 **"重新加载"**
-3. 使用 Chrome DevTools 调试
+```javascript
+// 启用调试模式
+document.body.classList.add('debug-image-protection');
 
-#### 常见问题
+// 监听保护事件
+window.addEventListener('imageProtected', function(event) {
+    console.log('图片已保护:', event.detail);
+});
 
-**Q: 构建失败，提示权限错误？**
-```bash
-chmod +x build.sh
+window.addEventListener('imageRestored', function(event) {
+    console.log('图片已恢复:', event.detail);
+});
 ```
 
-**Q: 扩展安装后无法使用？**
-- 检查 `manifest.json` 格式是否正确
-- 确认所有必需文件都已包含
-- 查看 Chrome 扩展管理页面的错误信息
+## 工作原理
 
-**Q: 如何更新扩展版本？**
-1. 修改 `manifest.json` 中的 `version` 字段
-2. 重新运行 `./build.sh`
-3. 安装新版本
-
-## 技术架构
-
-### 前端技术栈
-- **浏览器扩展**: Chrome Extension Manifest V3
-- **UI框架**: React/Vue.js
-- **样式**: CSS3 + 响应式设计
-- **状态管理**: Redux/Vuex
-
-### 后端服务
-- **AI翻译引擎**: 集成多种翻译API (Google Translate, DeepL, OpenAI等)
-- **OCR服务**: 图片文字识别
-- **PDF处理**: 文档解析和排版保持
-- **字幕处理**: 音频识别和字幕生成
-
-### 核心模块
-```
-src/
-├── background/          # 后台脚本
-├── content/            # 内容脚本
-├── popup/              # 弹出窗口
-├── options/            # 设置页面
-├── utils/              # 工具函数
-├── services/           # API服务
-└── assets/             # 静态资源
+### 1. 初始化阶段
+```javascript
+// 扫描现有图片
+preserveExistingImages() {
+    const images = document.querySelectorAll('img');
+    images.forEach(img => this.protectImageElement(img));
+}
 ```
 
-## 用户界面设计
+### 2. 监听阶段
+```javascript
+// 设置DOM变化监听
+setupMutationObserver() {
+    this.observer = new MutationObserver((mutations) => {
+        // 检测图片被移除
+        // 检测翻译结构被添加
+        // 触发恢复机制
+    });
+}
+```
 
-### 1. 插件图标
-- 简洁的翻译图标设计
-- 支持深色/浅色主题
-- 状态指示器 (翻译中/已完成)
+### 3. 恢复阶段
+```javascript
+// 在翻译内容中恢复图片
+restoreImagesInTranslatedContent(translatedNode) {
+    const insertionPoints = this.findImageInsertionPoints(translatedNode);
+    insertionPoints.forEach(point => this.restoreImageAtPoint(point));
+}
+```
 
-### 2. 弹出窗口
-- 翻译开关
-- 语言选择
-- 翻译模式切换 (双语/仅译文)
-- 快捷功能入口
+## 兼容性
 
-### 3. 网页内UI
-- 右侧悬浮快捷按钮
-- 翻译进度指示器
-- 设置面板
-- 反馈按钮
+- ✅ Chrome 60+
+- ✅ Firefox 55+
+- ✅ Safari 12+
+- ✅ Edge 79+
 
-### 4. 设置页面
-- 翻译服务配置
-- 快捷键管理
-- 界面自定义
-- 高级选项
+## 性能优化
 
-## 产品特色
+1. **延迟加载**: 使用setTimeout避免阻塞主线程
+2. **批量处理**: 一次性处理多个图片元素
+3. **内存管理**: 自动清理不再需要的数据
+4. **事件节流**: 避免过度频繁的DOM操作
 
-### 1. 智能化体验
-- **智能内容识别**: 自动识别网页主要内容区域
-- **上下文理解**: AI理解上下文，提供更准确的翻译
-- **个性化学习**: 根据用户使用习惯优化翻译效果
+## 故障排除
 
-### 2. 多场景支持
-- **全平台覆盖**: 支持主流浏览器和操作系统
-- **多格式支持**: 网页、文档、图片、视频、音频
-- **离线功能**: 基础翻译功能支持离线使用
+### 图片仍然丢失
 
-### 3. 用户友好
-- **一键翻译**: 简单易用的操作方式
-- **自定义选项**: 丰富的个性化设置
-- **快捷键支持**: 提高操作效率
+1. 检查控制台是否有错误信息
+2. 确认CSS文件已正确加载
+3. 验证图片URL是否正确
+4. 检查是否有其他脚本冲突
 
-## 商业模式
+### 性能问题
 
-### 免费版功能
-- 基础网页翻译
-- 标准PDF翻译
-- 基础图片翻译 (Chrome/Edge)
-- 字幕文件翻译
-- 社区支持
+1. 减少检查频率：
+```javascript
+// 调整检查间隔（默认5秒）
+setInterval(() => {
+    this.checkAndRestoreImages();
+}, 10000); // 改为10秒
+```
 
-### Pro版功能
-- 高级AI翻译引擎
-- 扫描版PDF翻译
-- Pro版图片翻译
-- 优先客服支持
-- 高级自定义选项
+2. 限制监听范围：
+```javascript
+// 只监听特定容器
+this.observer.observe(document.getElementById('content'), options);
+```
 
-## 技术实现要点
+## 示例演示
 
-### 1. 翻译质量优化
-- 多引擎翻译结果对比
-- 上下文语义理解
-- 专业术语词典
-- 用户反馈学习
+运行 `example-usage.html` 查看完整的演示效果：
 
-### 2. 性能优化
-- 翻译结果缓存
-- 懒加载机制
-- 后台预翻译
-- 资源压缩
+1. 打开HTML文件
+2. 点击"模拟翻译过程"按钮
+3. 观察图片是否成功保护和恢复
+4. 使用"切换调试模式"查看保护状态
 
-### 3. 安全性保障
-- 数据加密传输
-- 隐私保护机制
-- 安全API调用
-- 用户数据控制
+## 贡献
 
-## 开发计划
+欢迎提交Issue和Pull Request来改进这个解决方案。
 
-### Phase 1: 基础功能 (2个月)
-- [x] 浏览器扩展框架搭建
-- [x] 基础网页翻译功能
-- [x] 用户界面设计
-- [x] 翻译API集成
+## 许可证
 
-### Phase 2: 核心功能 (3个月)
-- [ ] PDF文档翻译
-- [ ] 图片翻译功能
-- [ ] 字幕翻译支持
-- [ ] 设置页面完善
-
-### Phase 3: 高级功能 (2个月)
-- [ ] 漫画翻译
-- [ ] 电子书支持
-- [ ] AI增强功能
-- [ ] Pro版功能开发
-
-### Phase 4: 优化完善 (1个月)
-- [ ] 性能优化
-- [ ] 用户体验改进
-- [ ] 多语言支持
-- [ ] 测试和发布
-
-## 竞品分析
-
-### 优势
-- **AI驱动**: 基于最新AI技术，翻译质量更高
-- **多场景支持**: 覆盖网页、文档、图片、视频等多种场景
-- **用户体验**: 沉浸式双语阅读体验
-- **技术先进**: 排版保持、公式识别等先进技术
-
-### 差异化
-- **智能化程度**: 更强的上下文理解和内容识别
-- **个性化**: 基于用户习惯的翻译优化
-- **生态完整**: 从翻译到分享的完整生态
-
-## 成功指标
-
-### 用户指标
-- 日活跃用户数 (DAU)
-- 月活跃用户数 (MAU)
-- 用户留存率
-- 用户满意度评分
-
-### 产品指标
-- 翻译准确率
-- 翻译速度
-- 功能使用率
-- 错误率
-
-### 商业指标
-- 免费用户转化率
-- Pro版订阅率
-- 用户生命周期价值 (LTV)
-- 客户获取成本 (CAC)
-
-## 风险与挑战
-
-### 技术风险
-- AI翻译质量不稳定
-- 浏览器兼容性问题
-- 性能瓶颈
-- 数据安全风险
-
-### 市场风险
-- 竞品压力
-- 用户接受度
-- 商业模式验证
-- 政策法规变化
-
-### 应对策略
-- 持续技术优化
-- 用户反馈收集
-- 灵活的产品迭代
-- 合规性保障
-
-## 总结
-
-Tidy 浏览器插件旨在通过先进的AI技术，为用户提供高质量的沉浸式翻译体验。产品设计注重用户体验、功能完整性和技术先进性，通过免费+付费的商业模式实现可持续发展。
-
-该产品将帮助用户打破语言障碍，提升信息获取效率，成为跨语言交流的重要工具。
-
----
-
-## 参考资源
-
-- [沉浸式翻译官方文档](https://immersivetranslate.com/zh-Hans/docs/usage/)
-- Chrome Extension Manifest V3 文档
-- 主流翻译API文档 (Google Translate, DeepL, OpenAI) 
+MIT License

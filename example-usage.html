@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片保护解决方案示例</title>
+    <link rel="stylesheet" href="image-preservation.css">
+</head>
+<body>
+    <div class="container">
+        <h1>M3-Bench 数据集示例</h1>
+        
+        <!-- 原始内容 -->
+        <div id="original-content">
+            <h2>翻译前的内容</h2>
+            <p dir="auto">We introduce M3-Bench, an long video question answerin dataset designed to evaluate the capability of multimodal agents to perform reasoning over long-term memory. Each instance in M3-Bench comprises a long video simulating the perceptual input of an agent, along with a series of open-ended question-answer pairs. The dataset is organized into two subsets:</p>
+            <ol dir="auto">
+                <li>M3-Bench-robot, which contains 100 real-world videos recorded from a robot's first-person perspective,</li>
+                <li>M3-Bench-web, which includes 920 web-sourced videos covering a wider variety of content and scenarios.</li>
+            </ol>
+            <p dir="auto">
+                <a target="_blank" rel="noopener noreferrer" href="/ByteDance-Seed/m3-agent/blob/master/figs/m3-bench-example.png">
+                    <img src="/ByteDance-Seed/m3-agent/raw/master/figs/m3-bench-example.png" alt="architecture" style="max-width: 100%;">
+                </a><br>
+                <a href="https://www.youtube.com/watch?v=7W0gRqCRMZQ" rel="nofollow">link1</a>, 
+                <a href="https://www.youtube.com/watch?v=Efk3K4epEzg" rel="nofollow">link2</a>, 
+                <a href="https://www.youtube.com/watch?v=6Unxpxy-Ct4" rel="nofollow">link3</a><br>
+                Examples from M3-Bench. M3-Bench-robot features long videos from realistic robotic work scenarios, while M3-Bench-web expands the video diversity to support broader evaluation. The question-answering tasks are designed to assess a multimodal agent's ability to construct consistent and reliable long-term memory, as well as to reason effectively over that memory.
+            </p>
+        </div>
+
+        <!-- 模拟翻译后的内容 -->
+        <div id="translated-content" style="display: none;">
+            <h2>翻译后的内容（模拟）</h2>
+            <p dir="auto" data-ai-translated="true" data-original-text="We introduce M3-Bench, an long video question answerin dataset designed to evaluate the capability of multimodal agents to perform reasoning over long-term memory. Each instance in M3-Bench comprises a long video simulating the perceptual input of an agent, along with a series of open-ended question-answer pairs. The dataset is organized into two subsets:">
+                <div class="ai-translation-immersive">
+                    <div class="original-text">We introduce M3-Bench, an long video question answerin dataset designed to evaluate the capability of multimodal agents to perform reasoning over long-term memory. Each instance in M3-Bench comprises a long video simulating the perceptual input of an agent, along with a series of open-ended question-answer pairs. The dataset is organized into two subsets:</div>
+                    <div class="translated-text">我们推出了M3-Bench，这是一个长视频问答数据集，旨在评估多模态智能体在长期记忆上进行推理的能力。M3-Bench中的每个实例包含一段模拟智能体感知输入的长视频，以及一系列开放式问答对。该数据集分为两个子集：</div>
+                </div>
+            </p>
+            <ol dir="auto">
+                <li data-ai-translated="true" data-original-text="M3-Bench-robot, which contains 100 real-world videos recorded from a robot's first-person perspective,">
+                    <div class="ai-translation-immersive">
+                        <div class="original-text">M3-Bench-robot, which contains 100 real-world videos recorded from a robot's first-person perspective,</div>
+                        <div class="translated-text">M3-Bench-robot，包含100段从机器人第一人称视角拍摄的真实世界视频，</div>
+                    </div>
+                </li>
+                <li data-ai-translated="true" data-original-text="M3-Bench-web, which includes 920 web-sourced videos covering a wider variety of content and scenarios.">
+                    <div class="ai-translation-immersive">
+                        <div class="original-text">M3-Bench-web, which includes 920 web-sourced videos covering a wider variety of content and scenarios.</div>
+                        <div class="translated-text">M3-Bench-web，包含920个来自网页的视频，涵盖更广泛的内容和场景。</div>
+                    </div>
+                </li>
+            </ol>
+            <!-- 这里图片会被恢复 -->
+            <div class="image-restoration-area" id="image-restore-point">
+                <!-- JavaScript 会在这里恢复图片 -->
+            </div>
+            <p dir="auto" data-ai-translated="true" data-original-text="link1, link2, link3 Examples from M3-Bench. M3-Bench-robot features long videos from realistic robotic work scenarios, while M3-Bench-web expands the video diversity to support broader evaluation. The question-answering tasks are designed to assess a multimodal agent's ability to construct consistent and reliable long-term memory, as well as to reason effectively over that memory.">
+                <div class="ai-translation-immersive">
+                    <div class="original-text">link1, link2, link3 Examples from M3-Bench. M3-Bench-robot features long videos from realistic robotic work scenarios, while M3-Bench-web expands the video diversity to support broader evaluation. The question-answering tasks are designed to assess a multimodal agent's ability to construct consistent and reliable long-term memory, as well as to reason effectively over that memory.</div>
+                    <div class="translated-text">链接1、链接2、链接3 来自M3-Bench的示例。M3-Bench-robot包含来自真实机器人工作场景的长视频，而M3-Bench-web则扩展了视频的多样性，以支持更广泛的评估。问答任务旨在评估多模态智能体构建一致且可靠的长期记忆的能力，以及基于该记忆进行有效推理的能力。</div>
+                </div>
+            </p>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="controls" style="margin: 20px 0; text-align: center;">
+            <button onclick="simulateTranslation()">模拟翻译过程</button>
+            <button onclick="resetContent()">重置内容</button>
+            <button onclick="toggleDebug()">切换调试模式</button>
+        </div>
+
+        <!-- 状态信息 -->
+        <div id="status" style="margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+            <strong>状态：</strong><span id="status-text">已加载图片保护机制</span>
+        </div>
+    </div>
+
+    <!-- 加载保护脚本 -->
+    <script src="image-preservation-fix.js"></script>
+    
+    <!-- 演示脚本 -->
+    <script>
+        let isTranslated = false;
+        let debugMode = false;
+
+        function simulateTranslation() {
+            const original = document.getElementById('original-content');
+            const translated = document.getElementById('translated-content');
+            const statusText = document.getElementById('status-text');
+
+            if (!isTranslated) {
+                // 模拟翻译过程
+                original.style.display = 'none';
+                translated.style.display = 'block';
+                statusText.textContent = '已翻译 - 图片保护机制正在工作';
+                isTranslated = true;
+                
+                // 触发图片恢复
+                setTimeout(() => {
+                    window.ImagePreservationManager.checkAndRestoreImages();
+                }, 500);
+            } else {
+                resetContent();
+            }
+        }
+
+        function resetContent() {
+            const original = document.getElementById('original-content');
+            const translated = document.getElementById('translated-content');
+            const statusText = document.getElementById('status-text');
+
+            original.style.display = 'block';
+            translated.style.display = 'none';
+            statusText.textContent = '已重置为原始内容';
+            isTranslated = false;
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const body = document.body;
+            
+            if (debugMode) {
+                body.classList.add('debug-image-protection');
+                document.getElementById('status-text').textContent = '调试模式已开启 - 受保护元素将显示边框';
+            } else {
+                body.classList.remove('debug-image-protection');
+                document.getElementById('status-text').textContent = '调试模式已关闭';
+            }
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('演示页面已加载');
+        });
+    </script>
+</body>
+</html>
