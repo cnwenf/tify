@@ -1,0 +1,29 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#34a853;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="url(#grad1)" stroke="#fff" stroke-width="4"/>
+  
+  <!-- 图片框架 -->
+  <rect x="24" y="32" width="80" height="56" rx="4" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  
+  <!-- 图片内容 -->
+  <rect x="28" y="36" width="72" height="48" rx="2" fill="#f0f0f0"/>
+  
+  <!-- 山峰图标 -->
+  <polygon points="32,72 48,52 64,64 80,48 96,72" fill="#4285f4"/>
+  
+  <!-- 太阳 -->
+  <circle cx="76" cy="48" r="6" fill="#fbbc04"/>
+  
+  <!-- 保护盾牌 -->
+  <path d="M64 92 L52 104 L52 116 L64 122 L76 116 L76 104 Z" fill="#34a853" stroke="#fff" stroke-width="2"/>
+  
+  <!-- 盾牌上的勾 -->
+  <path d="M58 108 L62 112 L70 104" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

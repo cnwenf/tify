@@ -1,73 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Tidy - 世界最好的AI翻译插件",
-  "version": "2.0.0",
-  "description": "智能分段并发翻译，参考immersive-translate设计，支持6种AI模型，3种显示模式，翻译速度提升15倍。Making the world's knowledge accessible in every language.",
-  "icons": {
-    "16": "src/assets/icon16.png",
-    "32": "src/assets/icon32.png",
-    "48": "src/assets/icon48.png",
-    "128": "src/assets/icon128.png"
-  },
+  "name": "图片翻译保护器",
+  "name_en": "Image Translation Protector",
+  "version": "1.0.0",
+  "description": "防止Chrome翻译时图片丢失的扩展",
+  "description_en": "Extension to prevent image loss during Chrome translation",
   "permissions": [
-    "storage",
     "activeTab",
-    "contextMenus",
-    "scripting"
+    "storage"
   ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ],
-  "background": {
-    "service_worker": "src/background/background.js"
-  },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["src/content/content.js"],
-      "css": ["src/content/content.css"],
-      "run_at": "document_end"
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
     }
   ],
   "action": {
-    "default_popup": "src/popup/popup.html",
-    "default_title": "Tidy Translator v2.0",
-    "default_icon": {
-      "16": "src/assets/icon16.png",
-      "32": "src/assets/icon32.png",
-      "48": "src/assets/icon48.png",
-      "128": "src/assets/icon128.png"
-    }
+    "default_popup": "popup.html",
+    "default_title": "图片翻译保护器"
   },
-  "commands": {
-    "translate-page": {
-      "suggested_key": {
-        "default": "Alt+T",
-        "mac": "Alt+T"
-      },
-      "description": "翻译当前页面"
-    },
-    "toggle-translation": {
-      "suggested_key": {
-        "default": "Alt+S",
-        "mac": "Alt+S"
-      },
-      "description": "切换翻译状态"
-    },
-    "clear-translation": {
-      "suggested_key": {
-        "default": "Alt+R",
-        "mac": "Alt+R"
-      },
-      "description": "清除翻译"
-    }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["src/assets/*"],
-      "matches": ["http://*/*", "https://*/*"]
-    }
-  ],
-  "options_page": "src/welcome/welcome.html"
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }
